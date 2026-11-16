@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import { ClockIcon } from "lucide-react"
 
@@ -68,8 +70,12 @@ export function TimePicker({
   placeholder = "Select time",
   hourLabel = "Hour",
   minuteLabel = "Minute",
+  name,
+  className,
+  "aria-describedby": ariaDescribedBy,
   ...props
 }: TimePickerProps) {
+  const valueId = React.useId()
   const [open, setOpen] = React.useState(false)
   const [internalValue, setInternalValue] = React.useState(defaultValue)
   const currentValue = value ?? internalValue
@@ -147,15 +153,25 @@ export function TimePicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" {...props}>
+        <Button
+          variant="outline"
+          className={cn("justify-start font-normal", className)}
+          {...props}
+          aria-describedby={[valueId, ariaDescribedBy]
+            .filter(Boolean)
+            .join(" ")}
+        >
           <ClockIcon data-icon="inline-start" />
-          {currentValue || (
-            <span className="text-muted-foreground">{placeholder}</span>
-          )}
+          <span id={valueId}>
+            {currentValue || (
+              <span className="text-muted-foreground">{placeholder}</span>
+            )}
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent
         ref={contentRef}
+        align="start"
         onOpenAutoFocus={focusOnOpen}
         className="flex w-auto flex-row gap-2"
         aria-label={`${hourLabel}, ${minuteLabel}`}
@@ -191,6 +207,7 @@ export function TimePicker({
           ))}
         </TimeColumn>
       </PopoverContent>
+      {name && <input type="hidden" name={name} value={currentValue} />}
     </Popover>
   )
 }

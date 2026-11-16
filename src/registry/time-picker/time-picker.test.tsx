@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { Field, FieldLabel } from "@/components/ui/field"
 
+import source from "./time-picker.tsx?raw"
 import {
   formatTime,
   getMinuteOptions,
@@ -369,5 +370,90 @@ describe("TimePicker", () => {
     const trigger = screen.getByLabelText("Start time")
     expect(trigger).toBe(screen.getByRole("button"))
     expect(trigger).toHaveAttribute("aria-invalid", "true")
+  })
+
+  it("starts with use client so Server Components can import it", () => {
+    expect(source.startsWith('"use client"')).toBe(true)
+  })
+
+  describe("accessible value", () => {
+    it("exposes the value as the description when labelled", () => {
+      render(
+        <Field>
+          <FieldLabel htmlFor="start">Start time</FieldLabel>
+          <TimePicker id="start" defaultValue="09:30" />
+        </Field>
+      )
+      const trigger = screen.getByRole("button", { name: "Start time" })
+      expect(trigger).toHaveAccessibleDescription("09:30")
+    })
+
+    it("exposes the placeholder when empty", () => {
+      render(<TimePicker aria-label="Start" />)
+      expect(screen.getByRole("button")).toHaveAccessibleDescription(
+        "Select time"
+      )
+    })
+
+    it("keeps a consumer aria-describedby", () => {
+      render(
+        <>
+          <p id="hint">Pick a time</p>
+          <TimePicker
+            aria-label="Start"
+            defaultValue="09:30"
+            aria-describedby="hint"
+          />
+        </>
+      )
+      expect(screen.getByRole("button")).toHaveAccessibleDescription(
+        "09:30 Pick a time"
+      )
+    })
+  })
+
+  describe("form", () => {
+    it("submits the value under name", async () => {
+      const user = userEvent.setup()
+      render(
+        <form data-testid="form">
+          <TimePicker name="start" />
+        </form>
+      )
+      const form = screen.getByTestId("form") as HTMLFormElement
+      expect(new FormData(form).get("start")).toBe("")
+      await user.click(screen.getByRole("button"))
+      await user.click(option(hours(), "09"))
+      await user.click(option(minutes(), "30"))
+      expect(new FormData(form).get("start")).toBe("09:30")
+    })
+
+    it("submits nothing without a name", () => {
+      render(
+        <form data-testid="form">
+          <TimePicker defaultValue="09:30" />
+        </form>
+      )
+      const form = screen.getByTestId("form") as HTMLFormElement
+      expect([...new FormData(form).keys()]).toEqual([])
+    })
+  })
+
+  describe("trigger style", () => {
+    it("left-aligns, and lets className override", () => {
+      render(<TimePicker className="w-full" />)
+      const button = screen.getByRole("button")
+      expect(button).toHaveClass("justify-start", "font-normal", "w-full")
+    })
+
+    it("aligns the popover to the start", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker />)
+      await user.click(screen.getByRole("button"))
+      expect(hours().closest("[data-align]")).toHaveAttribute(
+        "data-align",
+        "start"
+      )
+    })
   })
 })
