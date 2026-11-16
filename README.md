@@ -1,20 +1,37 @@
 # fizipan/registry
 
-A small shadcn registry of components I reuse. Items install with the shadcn CLI, so the source lands in your repo and you can edit it.
+shadcn/ui parts I kept rewriting across admin panels and CMS screens, written once: components, a theme and its fonts. They install with the shadcn CLI, so the source ends up in your repo and is yours to change.
 
-Items are written for Radix-based shadcn projects (the `radix-nova` style, `lucide-react` icons).
+**Docs and live previews:** https://fizipan-registry.vercel.app
 
-Demo: https://fizipan-registry.vercel.app
+![The registry docs site: a catalog of parts next to a dark sidebar](.github/readme/catalog.png)
+
+## Parts
+
+| Part                                                                                  | Type  | What it does                                                                                  |
+| ------------------------------------------------------------------------------------- | ----- | --------------------------------------------------------------------------------------------- |
+| [`time-picker`](https://fizipan-registry.vercel.app/#/time-picker)                     | ui    | Hour and minute columns in a popover, with min/max, minute steps and keyboard support.        |
+| [`theme-brick`](https://fizipan-registry.vercel.app/#/theme-brick)                     | theme | Brick-red brand, warm neutrals, a dark sidebar, status colors, Inter and Barlow Condensed.     |
+| [`font-inter`](https://fizipan-registry.vercel.app/#/font-inter)                       | font  | Inter as the sans font.                                                                       |
+| [`font-barlow-condensed`](https://fizipan-registry.vercel.app/#/font-barlow-condensed) | font  | Barlow Condensed (500, 600, 700) for the `font-display` utility.                              |
+
+Each page has the install commands, a live preview, and the full reference: props and keyboard for components, every token for themes, weights and setup for fonts.
+
+![The time-picker page in dark mode: install command, facts and a live preview](.github/readme/time-picker-dark.png)
 
 ## Install
 
-Any item installs straight from GitHub, with no setup:
+Parts are written for Radix-based shadcn projects (the `radix-nova` style, lucide icons). Themes and fonts expect Tailwind v4.
+
+### From GitHub
+
+No setup:
 
 ```bash
 npx shadcn@latest add fizipan/registry/time-picker
 ```
 
-### The `@fizipan` namespace
+### With the `@fizipan` namespace
 
 Add the registry to `components.json` once:
 
@@ -26,114 +43,43 @@ Add the registry to `components.json` once:
 }
 ```
 
-Then install by name, or browse what's there:
+Then install by name, or see everything that's there:
 
 ```bash
 npx shadcn@latest add @fizipan/time-picker
 npx shadcn@latest search @fizipan
 ```
 
-### Use it from Claude Code (MCP)
+### From Claude Code (MCP)
 
-The shadcn MCP server lets an AI assistant search and install items from the registries in your `components.json`. Set it up in your project with:
+With the namespace set up, run this in your project and restart Claude Code:
 
 ```bash
 npx shadcn@latest mcp init --client claude
 ```
 
-Restart Claude Code, then ask for something like "add the time picker from @fizipan".
-
-## Items
-
-### time-picker
-
-Hour and minute columns in a popover, with min/max limits, minute steps and keyboard navigation.
-
-```bash
-npx shadcn@latest add fizipan/registry/time-picker
-```
-
-This copies `time-picker.tsx` into `components/ui`. It also installs `button` and `popover`, which it depends on, if you don't have them.
-
-The value is a 24-hour `"HH:mm"` string, and `""` means empty.
-
-| Prop            | Type                      | Default         | Description                           |
-| --------------- | ------------------------- | --------------- | ------------------------------------- |
-| `value`         | `string`                  | -               | Controlled value, `"HH:mm"`.          |
-| `defaultValue`  | `string`                  | `""`            | Initial value when uncontrolled.      |
-| `onValueChange` | `(value: string) => void` | -               | Called when a time is picked.         |
-| `minuteStep`    | `number`                  | `1`             | Gap between minute options.           |
-| `min`           | `string`                  | -               | Earliest selectable time, `"HH:mm"`.  |
-| `max`           | `string`                  | -               | Latest selectable time, `"HH:mm"`.    |
-| `placeholder`   | `string`                  | `"Select time"` | Text shown when empty.                |
-| `hourLabel`     | `string`                  | `"Hour"`        | Accessible name of the hour column.   |
-| `minuteLabel`   | `string`                  | `"Minute"`      | Accessible name of the minute column. |
-
-`name` submits the value with a form, through a hidden input. Other props go to the trigger button, so `id`, `disabled` and `aria-invalid` all work.
-
-The example below uses `Field`, which you can install with `npx shadcn@latest add field`.
-
-```tsx
-import { useState } from "react"
-
-import { Field, FieldLabel } from "@/components/ui/field"
-import { TimePicker } from "@/components/ui/time-picker"
-
-export function StartTime() {
-  const [start, setStart] = useState("09:00")
-
-  return (
-    <Field>
-      <FieldLabel htmlFor="start">Start time</FieldLabel>
-      <TimePicker
-        id="start"
-        value={start}
-        onValueChange={setStart}
-        minuteStep={15}
-        min="08:00"
-        max="18:00"
-      />
-    </Field>
-  )
-}
-```
-
-### theme-brick
-
-A warm red-orange theme: brick-red primary, warm "ink" neutrals, a dark sidebar frame in both modes, Inter for text and Barlow Condensed for display headings.
-
-```bash
-npx shadcn@latest add @fizipan/theme-brick
-# or, without the namespace
-npx shadcn@latest add fizipan/registry/theme-brick
-```
-
-It sets every shadcn color token for light and dark, the radius (`0.625rem`), the sidebar and the chart colors. It also installs the two font items below. Installing it replaces your current theme variables.
-
-On top of the standard tokens it adds Tailwind colors you can use directly:
-
-| Token                                                             | Use                                                 |
-| ----------------------------------------------------------------- | --------------------------------------------------- |
-| `brand-50` … `brand-950`, `ink-50` … `ink-950`                    | The full brand and neutral scales.                  |
-| `success`, `warning`, `info` and their `-soft` versions           | Status text and soft badge backgrounds.             |
-| `brand-soft`, `brand-soft-foreground`                             | Soft brand highlights, selected states.             |
-| `surface-brand` (+ `-foreground`, `-muted`, `-accent`, `-border`) | A brand panel, like a dashboard hero or login side. |
-| `destructive-solid`                                               | A solid destructive fill for white text.            |
-| `sidebar-muted`                                                   | Inactive sidebar items.                             |
-
-```tsx
-<Badge className="bg-success-soft text-success">Approved</Badge>
-<h1 className="font-display text-4xl font-bold uppercase">Good morning</h1>
-```
-
-### font-inter, font-barlow-condensed
-
-Font items the theme depends on. `font-inter` sets `--font-sans`. `font-barlow-condensed` adds weights 500, 600 and 700 as `--font-display`, for the `font-display` utility. Next.js projects load them through `next/font`, other projects through Fontsource.
+Then ask for a part by name, for example "add the time picker from @fizipan to the booking form".
 
 ## Development
 
 ```bash
 pnpm install
-pnpm dev      # demo page
-pnpm test     # unit tests
+pnpm dev              # docs site with live previews
+pnpm test             # unit tests
+pnpm registry:build   # writes public/r/*.json
+pnpm build            # registry and site, as deployed
 ```
+
+The site deploys to Vercel on every push to `main`, and the registry JSON is served from the same deployment.
+
+To add a part:
+
+1. Put its source in `src/registry/<name>/`.
+2. Add an entry to `registry.json`.
+3. Add its page in `src/docs/pages/`.
+
+A test fails while a registry item has no page.
+
+## License
+
+MIT
