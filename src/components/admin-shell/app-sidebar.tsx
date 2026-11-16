@@ -228,7 +228,15 @@ function ParentItem({
   )
 }
 
-function BrandLink({ brand, Link }: { brand: Brand; Link: LinkComponent }) {
+function BrandLink({
+  brand,
+  Link,
+  onNavigate,
+}: {
+  brand: Brand
+  Link: LinkComponent
+  onNavigate: () => void
+}) {
   const content = (
     <>
       {brand.logo ? (
@@ -244,7 +252,9 @@ function BrandLink({ brand, Link }: { brand: Brand; Link: LinkComponent }) {
       <SidebarMenuItem>
         <SidebarMenuButton size="lg" asChild>
           {brand.href ? (
-            <Link href={brand.href}>{content}</Link>
+            <Link href={brand.href} onClick={onNavigate}>
+              {content}
+            </Link>
           ) : (
             <div>{content}</div>
           )}
@@ -282,7 +292,7 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader>
-        <BrandLink brand={brand} Link={Link} />
+        <BrandLink brand={brand} Link={Link} onNavigate={onNavigate} />
       </SidebarHeader>
       <SidebarContent>
         {nav.map((section, index) => (

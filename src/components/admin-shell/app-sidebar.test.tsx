@@ -37,6 +37,18 @@ const twoParents: NavSection[] = [
 
 const Spy: LinkComponent = (props) => <a {...props} data-spy />
 
+// Like a router link: forwards onClick first, then prevents the native navigation.
+const PreventingSpy: LinkComponent = ({ onClick, ...props }) => (
+  <a
+    {...props}
+    data-spy
+    onClick={(e) => {
+      onClick?.(e)
+      e.preventDefault()
+    }}
+  />
+)
+
 function setup(props: Partial<AppSidebarProps> & { open?: boolean } = {}) {
   const { open = true, ...rest } = props
   const ui = (p: Partial<AppSidebarProps>) => (
@@ -184,5 +196,90 @@ describe("AppSidebar", () => {
     const menu = screen.getByRole("menu")
     await user.click(within(menu).getByRole("menuitem", { name: "Sign out" }))
     expect(onSignOut).toHaveBeenCalledTimes(1)
+  })
+
+  it("keeps a top-level active link from closing an open parent", () => {
+    const { rerenderWith } = setup({ nav: twoParents, currentPath: "/a/one" })
+    rerenderWith({ currentPath: "/top" })
+    expect(screen.getByRole("link", { name: "A one" })).toBeVisible()
+  })
+
+  it("keeps a manual open across a rerender with the same path", async () => {
+    const user = userEvent.setup()
+    const { rerenderWith } = setup({ nav: twoParents, currentPath: "/a/one" })
+    await user.click(screen.getByRole("button", { name: "Beta" }))
+    rerenderWith({ currentPath: "/a/one" })
+    expect(screen.getByRole("link", { name: "B one" })).toBeVisible()
+    expect(
+      screen.queryByRole("link", { name: "A one" })
+    ).not.toBeInTheDocument()
+  })
+
+  it("shows active state, badges and a dot in collapsed mode", async () => {
+    const user = userEvent.setup()
+    setup({ open: false, currentPath: "/leave/calendar" })
+    await user.click(screen.getByRole("button", { name: /Leave/ }))
+    expect(screen.getByRole("menuitem", { name: /Calendar/ })).toHaveAttribute(
+      "aria-current",
+      "page"
+    )
+    expect(
+      screen.getByRole("menuitem", { name: /New request/ })
+    ).not.toHaveAttribute("aria-current")
+    expect(
+      within(screen.getByRole("menuitem", { name: /Requests/ })).getByText(
+        "120"
+      )
+    ).toHaveClass("sr-only")
+    expect(
+      within(screen.getByRole("menuitem", { name: /Calendar/ })).getByText("2")
+    ).toBeInTheDocument()
+  })
+
+  it("marks icons with a dot for badged links and parents", () => {
+    const Icon = ({ className }: { className?: string }) => (
+      <svg className={className} />
+    )
+    setup({
+      open: false,
+      nav: [
+        {
+          items: [
+            { title: "Badged", href: "/b", icon: Icon, badge: 4 },
+            { title: "Plain", href: "/p", icon: Icon },
+            {
+              title: "Group",
+              icon: Icon,
+              items: [{ title: "Kid", href: "/k", badge: 1 }],
+            },
+            {
+              title: "Empty",
+              icon: Icon,
+              items: [{ title: "Kid 2", href: "/k2" }],
+            },
+          ],
+        },
+      ],
+    })
+    const dotIn = (name: RegExp) =>
+      screen
+        .getByRole(name.source === "Group" ? "button" : "link", { name })
+        .querySelector("span[aria-hidden]")
+    expect(dotIn(/Badged/)).toBeInTheDocument()
+    expect(dotIn(/Plain/)).not.toBeInTheDocument()
+    expect(dotIn(/Group/)).toBeInTheDocument()
+    expect(
+      screen
+        .getByRole("button", { name: /Empty/ })
+        .querySelector("span[aria-hidden]")
+    ).not.toBeInTheDocument()
+  })
+
+  it("closes the collapsed dropdown when a link is selected", async () => {
+    const user = userEvent.setup()
+    setup({ open: false, linkComponent: PreventingSpy })
+    await user.click(screen.getByRole("button", { name: /Leave/ }))
+    await user.click(screen.getByRole("menuitem", { name: /New request/ }))
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument()
   })
 })

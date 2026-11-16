@@ -11,12 +11,9 @@ export type NavLink = {
 export type NavParent = { title: string; icon?: NavIcon; items: NavLink[] }
 export type NavItem = NavLink | NavParent
 export type NavSection = { label?: string; items: NavItem[] }
-export type LinkComponentProps = {
+/** Spread every prop onto the anchor: the sidebar passes data attributes, ARIA and handlers through it. */
+export type LinkComponentProps = Omit<React.ComponentProps<"a">, "href"> & {
   href: string
-  className?: string
-  children?: React.ReactNode
-  onClick?: React.MouseEventHandler<HTMLAnchorElement>
-  "aria-current"?: "page"
 }
 export type LinkComponent = React.ComponentType<LinkComponentProps>
 export type ShellUser = { name: string; email?: string; avatar?: string }
