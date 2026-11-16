@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest"
 
 import {
   activeHref,
+  activeId,
   badgeTotal,
   formatBadge,
   initials,
+  isPlainClick,
   normalizePath,
+  parentIdOf,
   parentOf,
   type NavParent,
   type NavSection,
@@ -87,5 +90,42 @@ describe("nav", () => {
     expect(initials("Rina Putri")).toBe("RP")
     expect(initials("rina")).toBe("R")
     expect(initials("  Ana  Maria  Lopez ")).toBe("AM")
+  })
+
+  it("identifies links by position, first in nav order on a tie", () => {
+    const fx: NavSection[] = [
+      { items: [{ title: "Top", href: "/top" }] },
+      {
+        items: [
+          { title: "Same", items: [{ title: "One", href: "/dup" }] },
+          { title: "Same", items: [{ title: "Two", href: "/dup" }] },
+        ],
+      },
+    ]
+    expect(activeId(fx, "/top")).toBe("0-0")
+    expect(activeId(fx, "/dup")).toBe("1-0-0")
+    expect(activeId(fx, "/nope")).toBeNull()
+    expect(activeId(nav, "/leave/calendar")).toBe("1-1-2")
+    expect(parentIdOf("1-1-2")).toBe("1-1")
+    expect(parentIdOf("1-0")).toBeNull()
+    expect(parentIdOf(null)).toBeNull()
+  })
+
+  it("treats only an unmodified primary click as a navigation", () => {
+    const click = (init: Partial<Parameters<typeof isPlainClick>[0]> = {}) =>
+      isPlainClick({
+        button: 0,
+        metaKey: false,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        ...init,
+      })
+    expect(click()).toBe(true)
+    expect(click({ metaKey: true })).toBe(false)
+    expect(click({ ctrlKey: true })).toBe(false)
+    expect(click({ shiftKey: true })).toBe(false)
+    expect(click({ altKey: true })).toBe(false)
+    expect(click({ button: 1 })).toBe(false)
   })
 })

@@ -29,7 +29,7 @@ export type NavUserProps = {
 
 function UserAvatar({ user }: { user: ShellUser }) {
   return (
-    <Avatar className="size-8 rounded-lg">
+    <Avatar aria-hidden className="size-8 rounded-lg">
       {user.avatar ? <AvatarImage src={user.avatar} alt="" /> : null}
       <AvatarFallback className="rounded-lg">
         {initials(user.name)}
@@ -89,7 +89,7 @@ export function NavUser({ user, userMenu, onSignOut }: NavUserProps) {
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem onSelect={onSignOut}>
+                  <DropdownMenuItem onSelect={() => onSignOut()}>
                     <LogOut />
                     Sign out
                   </DropdownMenuItem>

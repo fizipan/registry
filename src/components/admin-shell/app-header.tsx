@@ -30,7 +30,7 @@ export function AppHeader({
       <SidebarTrigger className="-ml-1" />
       <Separator
         orientation="vertical"
-        className="mr-2 data-[orientation=vertical]:h-4"
+        className="mr-2 data-[orientation=vertical]:h-4 data-vertical:self-center"
       />
       <div className="min-w-0 flex-1">
         {breadcrumbs && breadcrumbs.length > 0 ? (

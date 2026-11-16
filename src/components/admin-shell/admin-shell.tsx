@@ -45,9 +45,22 @@ export function AdminShell({
   defaultSidebarOpen,
   children,
 }: AdminShellProps) {
+  const contentId = React.useId()
+  const skipToContent = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Focus directly: the href alone would rewrite the URL hash, which hash routers read as a route.
+    e.preventDefault()
+    document.getElementById(contentId)?.focus()
+  }
   return (
     <TooltipProvider>
       <SidebarProvider defaultOpen={defaultSidebarOpen ?? true}>
+        <a
+          href={`#${contentId}`}
+          onClick={skipToContent}
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:shadow-md focus:ring-2 focus:ring-ring focus:outline-none"
+        >
+          Skip to content
+        </a>
         <AppSidebar
           nav={nav}
           currentPath={currentPath}
@@ -63,7 +76,11 @@ export function AdminShell({
             actions={headerActions}
             linkComponent={linkComponent}
           />
-          <div className="flex min-w-0 flex-1 flex-col gap-4 p-4">
+          <div
+            id={contentId}
+            tabIndex={-1}
+            className="flex min-w-0 flex-1 flex-col gap-4 p-4 outline-none"
+          >
             {children}
           </div>
         </SidebarInset>

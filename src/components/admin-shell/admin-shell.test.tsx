@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
 import { AdminShell, type AdminShellProps } from "./admin-shell"
@@ -41,7 +42,7 @@ describe("AdminShell", () => {
   it("renders no breadcrumb without breadcrumbs", () => {
     setup()
     expect(screen.queryByRole("navigation", { name: "breadcrumb" })).toBeNull()
-    const header = screen.getByRole("banner")
+    const header = document.querySelector("header") as HTMLElement
     expect(
       within(header).getByRole("button", { name: "Toggle Sidebar" })
     ).toBeInTheDocument()
@@ -49,7 +50,7 @@ describe("AdminShell", () => {
 
   it("renders header actions", () => {
     setup({ headerActions: <button>Notifications</button> })
-    const header = screen.getByRole("banner")
+    const header = document.querySelector("header") as HTMLElement
     expect(
       within(header).getByRole("button", { name: "Notifications" })
     ).toBeInTheDocument()
@@ -80,5 +81,26 @@ describe("AdminShell", () => {
     setup({ nav: [] })
     expect(screen.getByText("Acme")).toBeInTheDocument()
     expect(within(screen.getByRole("main")).getByText("Hello")).toBeVisible()
+  })
+
+  it("puts a skip link first in the tab order, targeting the content", async () => {
+    const user = userEvent.setup()
+    setup()
+    const skip = screen.getByRole("link", { name: "Skip to content" })
+    const target = document.getElementById(skip.getAttribute("href")!.slice(1))
+    expect(target).toHaveAttribute("tabindex", "-1")
+    expect(target).toContainElement(screen.getByText("Hello"))
+    await user.tab()
+    expect(skip).toHaveFocus()
+    await user.keyboard("{Enter}")
+    expect(target).toHaveFocus()
+  })
+
+  it("labels the main navigation", () => {
+    setup()
+    const main = screen.getByRole("navigation", { name: "Main" })
+    expect(
+      within(main).getByRole("link", { name: "Dashboard" })
+    ).toBeInTheDocument()
   })
 })

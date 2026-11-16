@@ -29,10 +29,34 @@ export function normalizePath(path: string): string {
   return bare.length > 1 && bare.endsWith("/") ? bare.slice(0, -1) : bare || "/"
 }
 
-function links(nav: NavSection[]): NavLink[] {
-  return nav.flatMap((section) =>
-    section.items.flatMap((item) => (isParent(item) ? item.items : [item]))
+type Entry = { id: string; link: NavLink }
+
+/** Every link with its position id: "<section>-<item>" or "<section>-<item>-<child>". */
+function entries(nav: NavSection[]): Entry[] {
+  return nav.flatMap((section, s) =>
+    section.items.flatMap((item, i) =>
+      isParent(item)
+        ? item.items.map((link, j) => ({ id: `${s}-${i}-${j}`, link }))
+        : [{ id: `${s}-${i}`, link: item }]
+    )
   )
+}
+
+function bestEntry(nav: NavSection[], currentPath: string): Entry | null {
+  const path = normalizePath(currentPath)
+  let best: Entry | null = null
+  let bestLength = -1
+  for (const entry of entries(nav)) {
+    const href = normalizePath(entry.link.href)
+    const matches =
+      path === href ||
+      (entry.link.exact !== true && href !== "/" && path.startsWith(href + "/"))
+    if (matches && href.length > bestLength) {
+      best = entry
+      bestLength = href.length
+    }
+  }
+  return best
 }
 
 /** The href of the link that matches `currentPath`: longest wins, first on a tie. */
@@ -40,18 +64,32 @@ export function activeHref(
   nav: NavSection[],
   currentPath: string
 ): string | null {
-  const path = normalizePath(currentPath)
-  let best: string | null = null
-  for (const link of links(nav)) {
-    const href = normalizePath(link.href)
-    const matches =
-      path === href ||
-      (link.exact !== true && href !== "/" && path.startsWith(href + "/"))
-    if (matches && (best === null || href.length > best.length)) best = href
-  }
-  return best === null
-    ? null
-    : (links(nav).find((l) => normalizePath(l.href) === best)?.href ?? null)
+  return bestEntry(nav, currentPath)?.link.href ?? null
+}
+
+/** Like `activeHref`, but returns the link's position id, so duplicate hrefs stay distinct. */
+export function activeId(
+  nav: NavSection[],
+  currentPath: string
+): string | null {
+  return bestEntry(nav, currentPath)?.id ?? null
+}
+
+/** The parent's id ("<section>-<item>") for a child link id, else null. */
+export function parentIdOf(id: string | null): string | null {
+  const parts = id?.split("-") ?? []
+  return parts.length === 3 ? `${parts[0]}-${parts[1]}` : null
+}
+
+/** True for a plain primary-button click; false for open-in-new-tab style clicks. */
+export function isPlainClick(e: {
+  button: number
+  metaKey: boolean
+  ctrlKey: boolean
+  shiftKey: boolean
+  altKey: boolean
+}): boolean {
+  return e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 }
 
 export function parentOf(nav: NavSection[], href: string): NavParent | null {

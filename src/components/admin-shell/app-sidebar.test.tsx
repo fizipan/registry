@@ -282,4 +282,138 @@ describe("AppSidebar", () => {
     await user.click(screen.getByRole("menuitem", { name: /New request/ }))
     expect(screen.queryByRole("menu")).not.toBeInTheDocument()
   })
+
+  it("describes links by their full badge count", async () => {
+    const user = userEvent.setup()
+    setup({ currentPath: "/leave/calendar" })
+    expect(
+      screen.getByRole("link", { name: "Employees" })
+    ).toHaveAccessibleDescription("3")
+    expect(
+      screen.getByRole("link", { name: "Requests" })
+    ).toHaveAccessibleDescription("120")
+    expect(
+      screen.getByRole("link", { name: "Calendar" })
+    ).toHaveAccessibleDescription("2")
+    expect(
+      screen.getByRole("link", { name: "Dashboard" })
+    ).not.toHaveAccessibleDescription()
+    await user.click(screen.getByRole("button", { name: /Leave/ }))
+    expect(
+      screen.getByRole("button", { name: /Leave/ })
+    ).toHaveAccessibleDescription("122")
+  })
+
+  it("describes badged links in collapsed mode", () => {
+    setup({ open: false })
+    expect(
+      screen.getByRole("link", { name: "Employees" })
+    ).toHaveAccessibleDescription("3")
+    expect(
+      screen.getByRole("button", { name: /Leave/ })
+    ).toHaveAccessibleDescription("122")
+  })
+
+  it("opens parents with the same title independently", async () => {
+    const user = userEvent.setup()
+    setup({
+      nav: [
+        {
+          items: [
+            { title: "Group", items: [{ title: "First", href: "/first" }] },
+          ],
+        },
+        {
+          items: [
+            { title: "Group", items: [{ title: "Second", href: "/second" }] },
+          ],
+        },
+      ],
+      currentPath: "/",
+    })
+    const [one, two] = screen.getAllByRole("button", { name: "Group" })
+    await user.click(two)
+    expect(screen.getByRole("link", { name: "Second" })).toBeVisible()
+    expect(
+      screen.queryByRole("link", { name: "First" })
+    ).not.toBeInTheDocument()
+    await user.click(one)
+    expect(screen.getByRole("link", { name: "First" })).toBeVisible()
+    expect(
+      screen.queryByRole("link", { name: "Second" })
+    ).not.toBeInTheDocument()
+  })
+
+  it("lights only the first of two links with the same href", () => {
+    setup({
+      nav: [
+        { items: [{ title: "P1", items: [{ title: "Dup 1", href: "/dup" }] }] },
+        { items: [{ title: "P2", items: [{ title: "Dup 2", href: "/dup" }] }] },
+      ],
+      currentPath: "/dup",
+    })
+    expect(screen.getByRole("link", { name: "Dup 1" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    )
+    expect(screen.getByRole("button", { name: "P1" })).toHaveAttribute(
+      "data-active",
+      "true"
+    )
+    expect(screen.getByRole("button", { name: "P2" })).toHaveAttribute(
+      "data-active",
+      "false"
+    )
+    expect(
+      screen.queryByRole("link", { name: "Dup 2" })
+    ).not.toBeInTheDocument()
+  })
+
+  it("reopens a manually closed parent when the path moves between its children", async () => {
+    const user = userEvent.setup()
+    const { rerenderWith } = setup({ currentPath: "/leave/new" })
+    await user.click(screen.getByRole("button", { name: /Leave/ }))
+    expect(
+      screen.queryByRole("link", { name: "New request" })
+    ).not.toBeInTheDocument()
+    rerenderWith({ currentPath: "/leave/calendar" })
+    expect(screen.getByRole("link", { name: "Calendar" })).toBeVisible()
+  })
+
+  it("shows a brand mark when there is no logo", () => {
+    setup()
+    const mark = screen.getByText("A")
+    expect(mark).toHaveAttribute("aria-hidden", "true")
+    expect(mark).toHaveClass("size-8")
+    expect(screen.getByRole("link", { name: "Acme Admin" })).toBeInTheDocument()
+  })
+
+  it("keeps the user's initials out of the button name", () => {
+    setup({ user: { name: "Rina Putri", email: "rina@example.com" } })
+    expect(
+      screen.getByRole("button", { name: /^Rina Putri/ })
+    ).toBeInTheDocument()
+  })
+
+  it("marks the active collapsed item beyond the focus highlight", async () => {
+    const user = userEvent.setup()
+    setup({ open: false, currentPath: "/leave/calendar" })
+    await user.click(screen.getByRole("button", { name: /Leave/ }))
+    const active = screen.getByRole("menuitem", { name: /Calendar/ })
+    expect(active).toHaveClass("font-medium")
+    expect(active).not.toHaveClass("bg-accent")
+    expect(active.querySelector("svg")).toBeInTheDocument()
+    expect(
+      screen.getByRole("menuitem", { name: /New request/ })
+    ).not.toHaveClass("font-medium")
+  })
+
+  it("calls onSignOut without the menu event", async () => {
+    const user = userEvent.setup()
+    const onSignOut = vi.fn()
+    setup({ user: { name: "Rina Putri" }, onSignOut })
+    await user.click(screen.getByRole("button", { name: /Rina Putri/ }))
+    await user.click(screen.getByRole("menuitem", { name: "Sign out" }))
+    expect(onSignOut).toHaveBeenCalledWith()
+  })
 })

@@ -1,14 +1,16 @@
 "use client"
 
-import { ChevronRight } from "lucide-react"
+import { Check, ChevronRight } from "lucide-react"
 import * as React from "react"
 
 import {
-  activeHref,
+  activeId,
   badgeTotal,
   formatBadge,
   isParent,
-  parentOf,
+  isPlainClick,
+  normalizePath,
+  parentIdOf,
   type LinkComponent,
   type NavIcon,
   type NavLink,
@@ -84,21 +86,30 @@ function Glyph({ icon: Icon, dot }: { icon?: NavIcon; dot: boolean }) {
   )
 }
 
+type Navigate = (e: React.MouseEvent) => void
+
 type LinkProps = {
   link: NavLink
   active: boolean
   Link: LinkComponent
-  onNavigate: () => void
+  onNavigate: Navigate
 }
 
 function TopLink({ link, active, Link, onNavigate }: LinkProps) {
+  const badgeId = React.useId()
   const hasBadge = (link.badge ?? 0) > 0
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={active} tooltip={link.title}>
+      <SidebarMenuButton
+        asChild
+        isActive={active}
+        tooltip={link.title}
+        className={cn(hasBadge && "pr-8")}
+      >
         <Link
           href={link.href}
           aria-current={active ? "page" : undefined}
+          aria-describedby={hasBadge ? badgeId : undefined}
           onClick={onNavigate}
         >
           <Glyph icon={link.icon} dot={hasBadge} />
@@ -106,7 +117,7 @@ function TopLink({ link, active, Link, onNavigate }: LinkProps) {
         </Link>
       </SidebarMenuButton>
       {hasBadge ? (
-        <SidebarMenuBadge>
+        <SidebarMenuBadge id={badgeId}>
           <BadgeText count={link.badge!} />
         </SidebarMenuBadge>
       ) : null}
@@ -115,20 +126,26 @@ function TopLink({ link, active, Link, onNavigate }: LinkProps) {
 }
 
 function SubLink({ link, active, Link, onNavigate }: LinkProps) {
+  const badgeId = React.useId()
   const hasBadge = (link.badge ?? 0) > 0
   return (
     <SidebarMenuSubItem>
-      <SidebarMenuSubButton asChild isActive={active}>
+      <SidebarMenuSubButton
+        asChild
+        isActive={active}
+        className={cn(hasBadge && "pr-8")}
+      >
         <Link
           href={link.href}
           aria-current={active ? "page" : undefined}
+          aria-describedby={hasBadge ? badgeId : undefined}
           onClick={onNavigate}
         >
           <span>{link.title}</span>
         </Link>
       </SidebarMenuSubButton>
       {hasBadge ? (
-        <SidebarMenuBadge className="top-1/2 -translate-y-1/2">
+        <SidebarMenuBadge id={badgeId} className="top-1/2 -translate-y-1/2">
           <BadgeText count={link.badge!} />
         </SidebarMenuBadge>
       ) : null}
@@ -138,54 +155,70 @@ function SubLink({ link, active, Link, onNavigate }: LinkProps) {
 
 type ParentProps = {
   parent: NavParent
-  active: string | null
+  id: string
+  activeId: string | null
   Link: LinkComponent
   open: boolean
   onOpenChange: (open: boolean) => void
-  onNavigate: () => void
+  onNavigate: Navigate
 }
 
 function ParentItem({
   parent,
-  active,
+  id,
+  activeId: active,
   Link,
   open,
   onOpenChange,
   onNavigate,
 }: ParentProps) {
   const { state, isMobile } = useSidebar()
+  const badgeId = React.useId()
   const total = badgeTotal(parent)
-  const holdsActive = parent.items.some((l) => l.href === active)
+  const holdsActive = parentIdOf(active) === id
 
   if (state === "collapsed" && !isMobile) {
     return (
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton isActive={holdsActive} tooltip={parent.title}>
+            <SidebarMenuButton
+              isActive={holdsActive}
+              tooltip={parent.title}
+              aria-describedby={total > 0 ? badgeId : undefined}
+            >
               <Glyph icon={parent.icon} dot={total > 0} />
               <span>{parent.title}</span>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="start">
-            {parent.items.map((link) => (
-              <DropdownMenuItem key={link.href} asChild>
-                <Link
-                  href={link.href}
-                  aria-current={link.href === active ? "page" : undefined}
-                  className={cn(link.href === active && "bg-accent")}
-                >
-                  <span className="flex-1">{link.title}</span>
-                  {(link.badge ?? 0) > 0 ? (
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      <BadgeText count={link.badge!} />
-                    </span>
-                  ) : null}
-                </Link>
-              </DropdownMenuItem>
-            ))}
+            {parent.items.map((link, index) => {
+              const current = `${id}-${index}` === active
+              return (
+                <DropdownMenuItem key={index} asChild>
+                  <Link
+                    href={link.href}
+                    aria-current={current ? "page" : undefined}
+                    className={cn(current && "font-medium")}
+                  >
+                    <span className="flex-1">{link.title}</span>
+                    {(link.badge ?? 0) > 0 ? (
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        <BadgeText count={link.badge!} />
+                      </span>
+                    ) : null}
+                    {current ? <Check aria-hidden /> : null}
+                  </Link>
+                </DropdownMenuItem>
+              )
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
+        {total > 0 ? (
+          <span id={badgeId} className="sr-only">
+            {total}
+          </span>
+        ) : null}
       </SidebarMenuItem>
     )
   }
@@ -199,24 +232,30 @@ function ParentItem({
     >
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton isActive={holdsActive} tooltip={parent.title}>
+          <SidebarMenuButton
+            isActive={holdsActive}
+            tooltip={parent.title}
+            aria-describedby={!open && total > 0 ? badgeId : undefined}
+          >
             <Glyph icon={parent.icon} dot={total > 0} />
-            <span className="truncate">{parent.title}</span>
+            <span className={cn("truncate", !open && total > 0 && "pr-8")}>
+              {parent.title}
+            </span>
             <ChevronRight className="ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         {!open && total > 0 ? (
-          <SidebarMenuBadge className="right-7">
+          <SidebarMenuBadge id={badgeId} className="right-7">
             <BadgeText count={total} />
           </SidebarMenuBadge>
         ) : null}
         <CollapsibleContent>
           <SidebarMenuSub>
-            {parent.items.map((link) => (
+            {parent.items.map((link, index) => (
               <SubLink
-                key={link.href}
+                key={index}
                 link={link}
-                active={link.href === active}
+                active={`${id}-${index}` === active}
                 Link={Link}
                 onNavigate={onNavigate}
               />
@@ -235,15 +274,16 @@ function BrandLink({
 }: {
   brand: Brand
   Link: LinkComponent
-  onNavigate: () => void
+  onNavigate: Navigate
 }) {
   const content = (
     <>
-      {brand.logo ? (
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          {brand.logo}
-        </div>
-      ) : null}
+      <div
+        aria-hidden={brand.logo ? undefined : true}
+        className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+      >
+        {brand.logo ?? Array.from(brand.name.trim())[0]?.toUpperCase()}
+      </div>
       <span className="truncate font-medium">{brand.name}</span>
     </>
   )
@@ -274,19 +314,21 @@ export function AppSidebar({
   onSignOut,
 }: AppSidebarProps) {
   const { isMobile, setOpenMobile } = useSidebar()
-  const active = activeHref(nav, currentPath)
-  const activeParent = active ? (parentOf(nav, active)?.title ?? null) : null
+  const active = activeId(nav, currentPath)
+  const activeParent = parentIdOf(active)
+  const path = normalizePath(currentPath)
 
-  // Accordion: follow the active parent when it changes; a top-level active link leaves it alone.
-  const [tracked, setTracked] = React.useState(activeParent)
+  // Accordion: reopen the active parent whenever the path changes, including
+  // after a manual close; a top-level active link leaves it alone.
+  const [trackedPath, setTrackedPath] = React.useState(path)
   const [openParent, setOpenParent] = React.useState(activeParent)
-  if (activeParent !== tracked) {
-    setTracked(activeParent)
+  if (path !== trackedPath) {
+    setTrackedPath(path)
     if (activeParent !== null) setOpenParent(activeParent)
   }
 
-  const onNavigate = () => {
-    if (isMobile) setOpenMobile(false)
+  const onNavigate: Navigate = (e) => {
+    if (isMobile && isPlainClick(e)) setOpenMobile(false)
   }
 
   return (
@@ -295,38 +337,40 @@ export function AppSidebar({
         <BrandLink brand={brand} Link={Link} onNavigate={onNavigate} />
       </SidebarHeader>
       <SidebarContent>
-        {nav.map((section, index) => (
-          <SidebarGroup key={section.label ?? index}>
-            {section.label ? (
-              <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
-            ) : null}
-            <SidebarMenu>
-              {section.items.map((item) =>
-                isParent(item) ? (
-                  <ParentItem
-                    key={item.title}
-                    parent={item}
-                    active={active}
-                    Link={Link}
-                    open={openParent === item.title}
-                    onOpenChange={(open) =>
-                      setOpenParent(open ? item.title : null)
-                    }
-                    onNavigate={onNavigate}
-                  />
-                ) : (
-                  <TopLink
-                    key={item.href}
-                    link={item}
-                    active={item.href === active}
-                    Link={Link}
-                    onNavigate={onNavigate}
-                  />
-                )
-              )}
-            </SidebarMenu>
-          </SidebarGroup>
-        ))}
+        <nav aria-label="Main" className="flex min-h-0 flex-col gap-2">
+          {nav.map((section, s) => (
+            <SidebarGroup key={s}>
+              {section.label ? (
+                <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+              ) : null}
+              <SidebarMenu>
+                {section.items.map((item, i) => {
+                  const id = `${s}-${i}`
+                  return isParent(item) ? (
+                    <ParentItem
+                      key={id}
+                      parent={item}
+                      id={id}
+                      activeId={active}
+                      Link={Link}
+                      open={openParent === id}
+                      onOpenChange={(open) => setOpenParent(open ? id : null)}
+                      onNavigate={onNavigate}
+                    />
+                  ) : (
+                    <TopLink
+                      key={id}
+                      link={item}
+                      active={id === active}
+                      Link={Link}
+                      onNavigate={onNavigate}
+                    />
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroup>
+          ))}
+        </nav>
       </SidebarContent>
       {user ? (
         <SidebarFooter>
