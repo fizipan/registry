@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "fizipan",
+  "homepage": "https://github.com/fizipan/registry",
+  "items": [
+    {
+      "name": "time-picker",
+      "type": "registry:ui",
+      "title": "Time Picker",
+      "description": "Hour and minute columns in a popover, with min/max, minute steps and keyboard support.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "popover"],
+      "files": [
+        {
+          "path": "src/registry/time-picker/time-picker.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    }
+  ]
+}
