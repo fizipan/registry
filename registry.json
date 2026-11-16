@@ -18,6 +18,19 @@
       ]
     },
     {
+      "name": "page-header",
+      "type": "registry:ui",
+      "title": "Page Header",
+      "description": "Page title row with an optional count badge, description and actions.",
+      "registryDependencies": ["badge"],
+      "files": [
+        {
+          "path": "src/registry/page-header/page-header.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
       "name": "font-inter",
       "type": "registry:font",
       "title": "Inter",
