@@ -1,5 +1,13 @@
 import * as React from "react"
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/docs/components/copy-button"
 
@@ -107,5 +115,76 @@ export function CodeSample({
         <CopyButton value={code} label={label} />
       </div>
     </div>
+  )
+}
+
+export type PropRow = {
+  name: string
+  type: string
+  fallback?: string
+  note: React.ReactNode
+}
+
+/** A pin table that stacks into a definition list below the sm breakpoint. */
+export function PropTable({
+  label,
+  rows,
+  first = "Prop",
+}: {
+  label: string
+  rows: PropRow[]
+  first?: string
+}) {
+  return (
+    <>
+      <div className="hidden sm:block">
+        <Table aria-label={label}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{first}</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Default</TableHead>
+              <TableHead>Description</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow key={row.name}>
+                <TableCell className="font-mono text-[0.8125rem] font-medium">
+                  {row.name}
+                </TableCell>
+                <TableCell className="font-mono text-[0.8125rem] text-muted-foreground">
+                  {row.type}
+                </TableCell>
+                <TableCell className="font-mono text-[0.8125rem] text-muted-foreground">
+                  {row.fallback ?? "-"}
+                </TableCell>
+                <TableCell className="min-w-56 text-sm whitespace-normal text-muted-foreground">
+                  {row.note}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <dl
+        aria-label={label}
+        className="flex flex-col divide-y divide-border border-y border-border sm:hidden"
+      >
+        {rows.map((row) => (
+          <div key={row.name} className="flex flex-col gap-1 py-3">
+            <dt className="font-mono text-[0.8125rem] font-medium">
+              {row.name}
+            </dt>
+            <dd className="font-mono text-xs break-words text-muted-foreground">
+              {row.type} · default {row.fallback ?? "-"}
+            </dd>
+            <dd className="text-sm text-pretty text-muted-foreground">
+              {row.note}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </>
   )
 }

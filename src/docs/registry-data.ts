@@ -26,6 +26,7 @@ export const items = registry.items as RegistryItem[]
 
 export const groups = [
   { label: "Components", type: "registry:ui" },
+  { label: "Blocks", type: "registry:block" },
   { label: "Themes", type: "registry:theme" },
   { label: "Fonts", type: "registry:font" },
 ] as const

@@ -8,12 +8,14 @@ shadcn/ui parts I kept rewriting across admin panels and CMS screens, written on
 
 ## Parts
 
-| Part                                                                                  | Type  | What it does                                                                                  |
-| ------------------------------------------------------------------------------------- | ----- | --------------------------------------------------------------------------------------------- |
-| [`time-picker`](https://fizipan-registry.vercel.app/#/time-picker)                     | ui    | Hour and minute columns in a popover, with min/max, minute steps and keyboard support.        |
-| [`theme-brick`](https://fizipan-registry.vercel.app/#/theme-brick)                     | theme | Brick-red brand, warm neutrals, a dark sidebar, status colors, Inter and Barlow Condensed.     |
-| [`font-inter`](https://fizipan-registry.vercel.app/#/font-inter)                       | font  | Inter as the sans font.                                                                       |
-| [`font-barlow-condensed`](https://fizipan-registry.vercel.app/#/font-barlow-condensed) | font  | Barlow Condensed (500, 600, 700) for the `font-display` utility.                              |
+| Part                                                                                   | Type  | What it does                                                                               |
+| -------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------ |
+| [`time-picker`](https://fizipan-registry.vercel.app/#/time-picker)                     | ui    | Hour and minute columns in a popover, with min/max, minute steps and keyboard support.     |
+| [`admin-shell`](https://fizipan-registry.vercel.app/#/admin-shell)                     | block | Sidebar, header and user menu frame for admin panels. Works with any router.               |
+| [`page-header`](https://fizipan-registry.vercel.app/#/page-header)                     | ui    | Page title row with an optional count badge, description and actions.                      |
+| [`theme-brick`](https://fizipan-registry.vercel.app/#/theme-brick)                     | theme | Brick-red brand, warm neutrals, a dark sidebar, status colors, Inter and Barlow Condensed. |
+| [`font-inter`](https://fizipan-registry.vercel.app/#/font-inter)                       | font  | Inter as the sans font.                                                                    |
+| [`font-barlow-condensed`](https://fizipan-registry.vercel.app/#/font-barlow-condensed) | font  | Barlow Condensed (500, 600, 700) for the `font-display` utility.                           |
 
 Each page has the install commands, a live preview, and the full reference: props and keyboard for components, every token for themes, weights and setup for fonts.
 

@@ -31,6 +31,50 @@
       ]
     },
     {
+      "name": "admin-shell",
+      "type": "registry:block",
+      "title": "Admin Shell",
+      "description": "Sidebar, header and user menu frame for admin panels. Works with any router.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "sidebar",
+        "breadcrumb",
+        "dropdown-menu",
+        "avatar",
+        "collapsible",
+        "separator",
+        "tooltip",
+        "https://fizipan-registry.vercel.app/r/page-header.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/admin-shell/admin-shell.tsx",
+          "type": "registry:component",
+          "target": "components/admin-shell/admin-shell.tsx"
+        },
+        {
+          "path": "src/components/admin-shell/app-sidebar.tsx",
+          "type": "registry:component",
+          "target": "components/admin-shell/app-sidebar.tsx"
+        },
+        {
+          "path": "src/components/admin-shell/app-header.tsx",
+          "type": "registry:component",
+          "target": "components/admin-shell/app-header.tsx"
+        },
+        {
+          "path": "src/components/admin-shell/nav-user.tsx",
+          "type": "registry:component",
+          "target": "components/admin-shell/nav-user.tsx"
+        },
+        {
+          "path": "src/components/admin-shell/nav.ts",
+          "type": "registry:component",
+          "target": "components/admin-shell/nav.ts"
+        }
+      ]
+    },
+    {
       "name": "font-inter",
       "type": "registry:font",
       "title": "Inter",

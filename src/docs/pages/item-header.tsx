@@ -18,6 +18,7 @@ import { href } from "@/docs/use-route"
 
 const installTarget: Record<string, string> = {
   "registry:ui": "components/ui",
+  "registry:block": "components/admin-shell",
   "registry:theme": "Your global CSS file",
   "registry:font": "Your layout or global CSS",
 }
@@ -77,7 +78,7 @@ export function ItemHeader({ item }: { item: RegistryItem }) {
     {
       label: "Installs to",
       value: installTarget[item.type] ?? "your project",
-      mono: item.type === "registry:ui",
+      mono: item.type === "registry:ui" || item.type === "registry:block",
     },
     {
       label: "npm",

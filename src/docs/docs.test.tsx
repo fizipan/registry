@@ -83,6 +83,26 @@ describe("docs pages", () => {
   })
 })
 
+describe("blocks and previews", () => {
+  it("renders the preview without the docs shell", () => {
+    renderApp()
+    goTo("#/preview/admin-shell")
+    expect(
+      screen.queryByRole("navigation", { name: "Registry" })
+    ).not.toBeInTheDocument()
+    expect(screen.getAllByText("Acme Admin").length).toBeGreaterThan(0)
+  })
+
+  it("groups blocks in the nav", () => {
+    renderApp()
+    const nav = screen.getByRole("navigation", { name: "Registry" })
+    expect(within(nav).getByText("Blocks")).toBeInTheDocument()
+    expect(
+      within(nav).getByRole("link", { name: "admin-shell" })
+    ).toBeInTheDocument()
+  })
+})
+
 describe("ordering block", () => {
   it("switches the install route and copies the command", async () => {
     const user = userEvent.setup()

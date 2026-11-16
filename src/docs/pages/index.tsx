@@ -2,13 +2,17 @@ import * as React from "react"
 
 import { type RegistryItem, getItem } from "@/docs/registry-data"
 import { href } from "@/docs/use-route"
+import { AdminShellPage } from "@/docs/pages/admin-shell-page"
 import { FontPage } from "@/docs/pages/font-page"
+import { PageHeaderPage } from "@/docs/pages/page-header-page"
 import { ThemePage } from "@/docs/pages/theme-page"
 import { TimePickerPage } from "@/docs/pages/time-picker-page"
 
 type ItemPage = (props: { item: RegistryItem }) => React.ReactNode
 
 const byName: Record<string, ItemPage> = {
+  "admin-shell": AdminShellPage,
+  "page-header": PageHeaderPage,
   "time-picker": TimePickerPage,
 }
 
