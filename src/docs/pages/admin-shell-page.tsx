@@ -186,8 +186,9 @@ import { AdminShell } from "@/components/admin-shell/admin-shell"
 import type { LinkComponent } from "@/components/admin-shell/nav"
 import { nav } from "@/lib/nav"
 
+// to is typed per route; cast if your route tree is registered.
 const Link: LinkComponent = ({ href, ...props }) => (
-  <RouterLink to={href} {...props} />
+  <RouterLink to={href as never} {...props} />
 )
 
 export function Shell({ children }: { children: React.ReactNode }) {

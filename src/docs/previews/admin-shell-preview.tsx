@@ -62,54 +62,63 @@ function crumbsFor(path: string) {
   return [{ title: "Dashboard" }]
 }
 
-export function AdminShellPreview() {
-  const [path, setPath] = React.useState("/")
+const NavigateContext = React.createContext<(path: string) => void>(() => {})
 
-  const navigate: LinkComponent = ({ href, onClick, ...props }) => (
+// Defined at module scope so its identity never changes: a new component type
+// per render would remount every link and drop focus after each click.
+const PreviewLink: LinkComponent = ({ href, onClick, ...props }) => {
+  const navigate = React.useContext(NavigateContext)
+  return (
     <a
       href={href}
       onClick={(event) => {
         onClick?.(event)
         event.preventDefault()
-        setPath(href)
+        navigate(href)
       }}
       {...props}
     />
   )
+}
+
+export function AdminShellPreview() {
+  const [path, setPath] = React.useState("/")
 
   const crumbs = crumbsFor(path)
   const title = crumbs[crumbs.length - 1].title
 
   return (
-    <AdminShell
-      nav={nav}
-      currentPath={path}
-      linkComponent={navigate}
-      brand={{ name: "Acme Admin", href: "/" }}
-      user={{ name: "Rina Putri", email: "rina@example.com" }}
-      onSignOut={() => {}}
-      breadcrumbs={crumbs}
-      headerActions={
-        <Button variant="ghost" size="icon">
-          <BellIcon />
-          <span className="sr-only">Notifications</span>
-        </Button>
-      }
-    >
-      <PageHeader
-        title={title}
-        description="Placeholder content for the preview."
-        actions={
-          <Button size="sm">
-            <PlusIcon data-icon="inline-start" />
-            New
+    <NavigateContext value={setPath}>
+      <AdminShell
+        nav={nav}
+        currentPath={path}
+        linkComponent={PreviewLink}
+        brand={{ name: "Acme Admin", href: "/" }}
+        user={{ name: "Rina Putri", email: "rina@example.com" }}
+        onSignOut={() => {}}
+        breadcrumbs={crumbs}
+        headerActions={
+          <Button variant="ghost" size="icon">
+            <BellIcon />
+            <span className="sr-only">Notifications</span>
           </Button>
         }
-      />
-      <div className="flex min-h-48 flex-1 items-center justify-center gap-2 rounded-lg border border-dashed text-sm text-muted-foreground">
-        <FileTextIcon className="size-4" />
-        Page content goes here.
-      </div>
-    </AdminShell>
+      >
+        <PageHeader
+          title={title}
+          description="Placeholder content for the preview."
+          actions={
+            <Button size="sm">
+              <PlusIcon data-icon="inline-start" />
+              New
+            </Button>
+          }
+        />
+        <div className="flex min-h-48 flex-1 items-center justify-center gap-2 rounded-lg border border-dashed text-sm text-muted-foreground">
+          <FileTextIcon className="size-4" />
+          Page content goes here.
+        </div>
+      </AdminShell>
+    </NavigateContext>
   )
 }

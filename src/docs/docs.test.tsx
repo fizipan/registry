@@ -103,6 +103,33 @@ describe("blocks and previews", () => {
   })
 })
 
+describe("admin shell preview", () => {
+  const navLink = (name: string) =>
+    screen
+      .getAllByRole("link")
+      .find(
+        (a) =>
+          a.getAttribute("data-sidebar") === "menu-button" &&
+          a.textContent?.startsWith(name)
+      )!
+
+  it("keeps the clicked link mounted and focused, and moves the active state", async () => {
+    const user = userEvent.setup()
+    renderApp()
+    goTo("#/preview/admin-shell")
+
+    const link = navLink("Employees")
+    link.focus()
+    await user.click(link)
+
+    expect(link).toBeInTheDocument()
+    expect(navLink("Employees")).toBe(link)
+    expect(link).toHaveFocus()
+    expect(link).toHaveAttribute("aria-current", "page")
+    expect(navLink("Dashboard")).not.toHaveAttribute("aria-current")
+  })
+})
+
 describe("ordering block", () => {
   it("switches the install route and copies the command", async () => {
     const user = userEvent.setup()
