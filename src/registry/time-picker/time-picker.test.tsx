@@ -230,6 +230,118 @@ describe("TimePicker", () => {
     }
   })
 
+  it("snaps an off-grid minute to the first valid one when picking an hour", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
+      <TimePicker
+        defaultValue="10:07"
+        minuteStep={15}
+        onValueChange={onValueChange}
+      />
+    )
+    await user.click(screen.getByRole("button"))
+    await user.click(option(hours(), "11"))
+    expect(onValueChange).toHaveBeenCalledWith("11:00")
+  })
+
+  it("picks the first valid hour for a minute when min is mid-hour", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(<TimePicker min="08:30" onValueChange={onValueChange} />)
+    await user.click(screen.getByRole("button"))
+    await user.click(option(minutes(), "15"))
+    expect(onValueChange).toHaveBeenCalledWith("09:15")
+  })
+
+  it("never submits a surrounding form", () => {
+    render(<TimePicker />)
+    expect(screen.getByRole("button")).toHaveAttribute("type", "button")
+  })
+
+  describe("keyboard", () => {
+    it("focuses the selected hour on open", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker defaultValue="09:30" />)
+      await user.click(screen.getByRole("button"))
+      expect(document.activeElement).toBe(option(hours(), "09"))
+    })
+
+    it("focuses the first enabled hour when empty", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker min="08:00" />)
+      await user.click(screen.getByRole("button"))
+      expect(document.activeElement).toBe(option(hours(), "08"))
+    })
+
+    it("keeps exactly one tab stop per column", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker defaultValue="09:30" />)
+      await user.click(screen.getByRole("button"))
+      for (const list of [hours(), minutes()]) {
+        const stops = within(list)
+          .getAllByRole("option")
+          .filter((o) => o.tabIndex === 0)
+        expect(stops).toHaveLength(1)
+      }
+    })
+
+    it("moves with ArrowUp/ArrowDown and skips disabled", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker min="08:00" />)
+      await user.click(screen.getByRole("button"))
+      await user.keyboard("{ArrowUp}")
+      expect(document.activeElement).toBe(option(hours(), "08"))
+      await user.keyboard("{ArrowDown}")
+      expect(document.activeElement).toBe(option(hours(), "09"))
+    })
+
+    it("switches columns with ArrowRight/ArrowLeft", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker defaultValue="09:30" />)
+      await user.click(screen.getByRole("button"))
+      await user.keyboard("{ArrowRight}")
+      expect(document.activeElement).toBe(option(minutes(), "30"))
+      await user.keyboard("{ArrowLeft}")
+      expect(document.activeElement).toBe(option(hours(), "09"))
+    })
+
+    it("selects with Enter", async () => {
+      const user = userEvent.setup()
+      const onValueChange = vi.fn()
+      render(<TimePicker onValueChange={onValueChange} />)
+      await user.click(screen.getByRole("button"))
+      await user.keyboard("{ArrowDown}{Enter}")
+      expect(onValueChange).toHaveBeenLastCalledWith("01:00")
+      await user.keyboard("{ArrowRight}{ArrowDown}{Enter}")
+      expect(onValueChange).toHaveBeenLastCalledWith("01:01")
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull())
+    })
+
+    it("closes with Escape without changing the value", async () => {
+      const user = userEvent.setup()
+      const onValueChange = vi.fn()
+      render(<TimePicker defaultValue="09:30" onValueChange={onValueChange} />)
+      await user.click(screen.getByRole("button"))
+      await user.keyboard("{Escape}")
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull())
+      expect(onValueChange).not.toHaveBeenCalled()
+      expect(screen.getByRole("button")).toHaveTextContent("09:30")
+    })
+
+    it("scrolls selected options to the center on open", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker defaultValue="09:30" />)
+      await user.click(screen.getByRole("button"))
+      const scroll = vi.mocked(Element.prototype.scrollIntoView)
+      expect(scroll).toHaveBeenCalledWith({ block: "center" })
+      const texts = scroll.mock.contexts.map(
+        (el) => (el as Element).textContent
+      )
+      expect(texts).toEqual(expect.arrayContaining(["09", "30"]))
+    })
+  })
+
   it("shows an out-of-range value and stays quiet", () => {
     const onValueChange = vi.fn()
     render(

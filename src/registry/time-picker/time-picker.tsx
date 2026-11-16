@@ -89,6 +89,43 @@ export function TimePicker({
     onValueChange?.(next)
   }
 
+  const contentRef = React.useRef<HTMLDivElement>(null)
+  const hourStop =
+    current && HOURS.includes(current.hour)
+      ? current.hour
+      : HOURS.find((hour) => firstMinuteIn(hour) !== undefined)
+  const minuteStop = minuteOptions.includes(current?.minute ?? -1)
+    ? current?.minute
+    : minuteOptions.find((minute) =>
+        current
+          ? inRange(current.hour, minute)
+          : firstHourFor(minute) !== undefined
+      )
+
+  const focusOnOpen = (event: Event) => {
+    event.preventDefault()
+    const content = contentRef.current
+    content
+      ?.querySelector<HTMLElement>('[role="listbox"] [tabindex="0"]')
+      ?.focus({ preventScroll: true })
+    content
+      ?.querySelectorAll('[aria-selected="true"]')
+      .forEach((el) => el.scrollIntoView({ block: "center" }))
+  }
+
+  const moveAcross = (from: HTMLElement, direction: 1 | -1) => {
+    const lists = Array.from(
+      contentRef.current?.querySelectorAll<HTMLElement>('[role="listbox"]') ??
+        []
+    )
+    const target =
+      lists[
+        lists.indexOf(from.closest<HTMLElement>('[role="listbox"]')!) +
+          direction
+      ]
+    target?.querySelector<HTMLElement>('[tabindex="0"]')?.focus()
+  }
+
   const pickHour = (hour: number) => {
     const minute =
       current &&
@@ -118,8 +155,10 @@ export function TimePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        ref={contentRef}
+        onOpenAutoFocus={focusOnOpen}
         className="flex w-auto flex-row gap-2"
-        aria-label={`${hourLabel} and ${minuteLabel}`}
+        aria-label={`${hourLabel}, ${minuteLabel}`}
       >
         <TimeColumn label={hourLabel}>
           {HOURS.map((hour) => (
@@ -127,6 +166,8 @@ export function TimePicker({
               key={hour}
               text={String(hour).padStart(2, "0")}
               selected={current?.hour === hour}
+              tabbable={hour === hourStop}
+              onMoveAcross={moveAcross}
               disabled={firstMinuteIn(hour) === undefined}
               onSelect={() => pickHour(hour)}
             />
@@ -138,6 +179,8 @@ export function TimePicker({
               key={minute}
               text={String(minute).padStart(2, "0")}
               selected={current?.minute === minute}
+              tabbable={minute === minuteStop}
+              onMoveAcross={moveAcross}
               disabled={
                 current
                   ? !inRange(current.hour, minute)
@@ -179,18 +222,42 @@ function TimeOption({
   text,
   selected,
   disabled,
+  tabbable,
   onSelect,
+  onMoveAcross,
 }: {
   text: string
   selected: boolean
   disabled: boolean
+  tabbable: boolean
   onSelect: () => void
+  onMoveAcross: (from: HTMLElement, direction: 1 | -1) => void
 }) {
+  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const el = event.currentTarget
+    if (event.key === "Enter") {
+      if (!disabled) onSelect()
+    } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      const step =
+        event.key === "ArrowDown"
+          ? "nextElementSibling"
+          : "previousElementSibling"
+      let next = el[step]
+      while (next?.getAttribute("aria-disabled") === "true") next = next[step]
+      if (next instanceof HTMLElement) next.focus()
+    } else if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      onMoveAcross(el, event.key === "ArrowRight" ? 1 : -1)
+    } else return
+    event.preventDefault()
+  }
+
   return (
     <div
       role="option"
       aria-selected={selected}
       aria-disabled={disabled}
+      tabIndex={tabbable ? 0 : -1}
+      onKeyDown={onKeyDown}
       onClick={disabled ? undefined : onSelect}
       className={cn(
         "cursor-pointer rounded-md px-2 py-1 text-center text-sm tabular-nums hover:bg-muted",
