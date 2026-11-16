@@ -98,6 +98,38 @@ export function StartTime() {
 }
 ```
 
+### theme-brick
+
+A warm red-orange theme: brick-red primary, warm "ink" neutrals, a dark sidebar frame in both modes, Inter for text and Barlow Condensed for display headings.
+
+```bash
+npx shadcn@latest add @fizipan/theme-brick
+# or, without the namespace
+npx shadcn@latest add fizipan/registry/theme-brick
+```
+
+It sets every shadcn color token for light and dark, the radius (`0.625rem`), the sidebar and the chart colors. It also installs the two font items below. Installing it replaces your current theme variables.
+
+On top of the standard tokens it adds Tailwind colors you can use directly:
+
+| Token                                                             | Use                                                 |
+| ----------------------------------------------------------------- | --------------------------------------------------- |
+| `brand-50` … `brand-950`, `ink-50` … `ink-950`                    | The full brand and neutral scales.                  |
+| `success`, `warning`, `info` and their `-soft` versions           | Status text and soft badge backgrounds.             |
+| `brand-soft`, `brand-soft-foreground`                             | Soft brand highlights, selected states.             |
+| `surface-brand` (+ `-foreground`, `-muted`, `-accent`, `-border`) | A brand panel, like a dashboard hero or login side. |
+| `destructive-solid`                                               | A solid destructive fill for white text.            |
+| `sidebar-muted`                                                   | Inactive sidebar items.                             |
+
+```tsx
+<Badge className="bg-success-soft text-success">Approved</Badge>
+<h1 className="font-display text-4xl font-bold uppercase">Good morning</h1>
+```
+
+### font-inter, font-barlow-condensed
+
+Font items the theme depends on. `font-inter` sets `--font-sans`. `font-barlow-condensed` adds weights 500, 600 and 700 as `--font-display`, for the `font-display` utility. Next.js projects load them through `next/font`, other projects through Fontsource.
+
 ## Development
 
 ```bash
