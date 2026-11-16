@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react"
+import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
@@ -167,5 +167,93 @@ describe("ordering block", () => {
     expect(
       within(ordering).getByRole("button", { name: "Copied" })
     ).toBeInTheDocument()
+  })
+
+  it("keeps the stamp for a full window after the latest copy", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: false })
+    try {
+      userEvent.setup() // installs the clipboard stub
+      renderApp()
+      goTo("#/time-picker")
+      const ordering = screen.getByRole("region", {
+        name: "Ordering information",
+      })
+      const copy = () =>
+        act(async () => {
+          fireEvent.click(
+            within(ordering).getByRole("button", {
+              name: /^cop(y command|ied)$/i,
+            })
+          )
+        })
+      const stamp = () => ordering.querySelector("[data-stamped]") !== null
+
+      await copy()
+      expect(stamp()).toBe(true)
+      await act(() => vi.advanceTimersByTimeAsync(600))
+      await copy()
+      await act(() => vi.advanceTimersByTimeAsync(300))
+      // 900 ms after the first copy, 300 ms after the second: still stamped.
+      expect(stamp()).toBe(true)
+      await act(() => vi.advanceTimersByTimeAsync(500))
+      expect(stamp()).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("announces a successful copy to assistive tech", async () => {
+    const user = userEvent.setup()
+    renderApp()
+    goTo("#/time-picker")
+    const ordering = screen.getByRole("region", {
+      name: "Ordering information",
+    })
+    const status = within(ordering).getByRole("status")
+    expect(status).toHaveTextContent("")
+    await user.click(
+      within(ordering).getByRole("button", { name: "Copy command" })
+    )
+    expect(status).toHaveTextContent("Copied to clipboard")
+  })
+})
+
+describe("focus and skip link", () => {
+  it("moves focus to the main region when the route changes", () => {
+    renderApp()
+    expect(screen.getByRole("main")).not.toHaveFocus()
+    goTo("#/time-picker")
+    expect(screen.getByRole("main")).toHaveFocus()
+  })
+
+  it("offers a skip link that focuses main without changing the route", async () => {
+    const user = userEvent.setup()
+    renderApp()
+    goTo("#/time-picker")
+    screen.getByRole("link", { name: "All parts" }).focus()
+    const skip = screen.getByRole("link", { name: "Skip to content" })
+    await user.click(skip)
+    expect(screen.getByRole("main")).toHaveFocus()
+    expect(window.location.hash).toBe("#/time-picker")
+  })
+})
+
+describe("theme", () => {
+  it("syncs color-scheme and theme-color with the resolved theme", async () => {
+    document.head.insertAdjacentHTML(
+      "beforeend",
+      '<meta name="theme-color" content="#181211" />'
+    )
+    const user = userEvent.setup()
+    renderApp()
+    await user.click(
+      screen.getAllByRole("button", { name: /switch to dark mode/i })[0]!
+    )
+    expect(document.documentElement.style.colorScheme).toBe("dark")
+    expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute(
+      "content",
+      "#070505"
+    )
+    document.querySelector('meta[name="theme-color"]')?.remove()
   })
 })

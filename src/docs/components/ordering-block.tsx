@@ -32,9 +32,17 @@ export function OrderingBlock({
         {title}
       </h2>
       <Tabs defaultValue={routes[0].id} className="gap-3">
-        <TabsList variant="line" aria-label="Install route">
+        <TabsList
+          variant="line"
+          aria-label="Install route"
+          className="pointer-coarse:h-[3.125rem]!"
+        >
           {routes.map((route) => (
-            <TabsTrigger key={route.id} value={route.id}>
+            <TabsTrigger
+              key={route.id}
+              value={route.id}
+              className="active:text-foreground pointer-coarse:h-11! pointer-coarse:px-3"
+            >
               {route.label}
             </TabsTrigger>
           ))}
@@ -62,18 +70,23 @@ function CodeLine({ route }: { route: OrderingRoute }) {
   const [stamped, setStamped] = React.useState(false)
   const kind = route.kind ?? "command"
 
-  React.useEffect(() => {
-    if (!stamped) return
-    const timer = window.setTimeout(() => setStamped(false), 700)
-    return () => window.clearTimeout(timer)
-  }, [stamped])
+  const timer = React.useRef<number | undefined>(undefined)
+
+  React.useEffect(() => () => window.clearTimeout(timer.current), [])
+
+  function stamp() {
+    window.clearTimeout(timer.current)
+    setStamped(true)
+    timer.current = window.setTimeout(() => setStamped(false), 700)
+  }
 
   return (
     <div
       data-stamped={stamped || undefined}
       className={cn(
-        "flex items-start gap-3 rounded-lg bg-code-slab py-2 pr-2 pl-4 text-sidebar-foreground ring-1 ring-code-slab-ring transition-[box-shadow,background-color] duration-200 ease-out",
-        "data-stamped:bg-brand-950 data-stamped:ring-sidebar-primary motion-reduce:transition-none"
+        "flex items-start gap-3 rounded-lg bg-code-slab py-2 pr-2 pl-4 text-sidebar-foreground ring-1 ring-code-slab-ring transition-[box-shadow,background-color] duration-300 ease-snap",
+        // Lands fast, releases slowly. A color fade is not movement, so it stays under reduced motion.
+        "data-stamped:bg-brand-950 data-stamped:ring-sidebar-primary data-stamped:duration-100"
       )}
     >
       <pre className="min-w-0 flex-1 py-1.5 font-mono text-[0.8125rem] leading-6 [overflow-wrap:anywhere] whitespace-pre-wrap">
@@ -99,8 +112,8 @@ function CodeLine({ route }: { route: OrderingRoute }) {
               : "Copy command"
         }
         showLabel
-        onCopied={() => setStamped(true)}
-        className="shrink-0 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        onCopied={stamp}
+        className="shrink-0 text-sidebar-foreground hover:bg-white/10 hover:text-sidebar-accent-foreground dark:hover:bg-white/10"
       />
     </div>
   )
