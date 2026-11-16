@@ -22,4 +22,9 @@ export default defineConfig([
       'react-refresh/only-export-components': 'off',
     },
   },
+  {
+    // Stock shadcn hook, kept unmodified so it matches what consumers install.
+    files: ['src/hooks/use-mobile.ts'],
+    rules: { 'react-hooks/set-state-in-effect': 'off' },
+  },
 ])
