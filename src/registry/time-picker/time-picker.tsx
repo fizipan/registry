@@ -77,6 +77,8 @@ export function TimePicker({
 }: TimePickerProps) {
   const valueId = React.useId()
   const [open, setOpen] = React.useState(false)
+  const [focusedHour, setFocusedHour] = React.useState<number>()
+  const [focusedMinute, setFocusedMinute] = React.useState<number>()
   const [internalValue, setInternalValue] = React.useState(defaultValue)
   const currentValue = value ?? internalValue
   const current = parseTime(currentValue)
@@ -115,7 +117,9 @@ export function TimePicker({
       ?.querySelector<HTMLElement>('[role="listbox"] [tabindex="0"]')
       ?.focus({ preventScroll: true })
     content
-      ?.querySelectorAll('[aria-selected="true"]')
+      ?.querySelectorAll(
+        '[aria-selected="true"], [role="listbox"] [tabindex="0"]'
+      )
       .forEach((el) => el.scrollIntoView({ block: "center" }))
   }
 
@@ -151,7 +155,14 @@ export function TimePicker({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        setFocusedHour(undefined)
+        setFocusedMinute(undefined)
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -182,7 +193,8 @@ export function TimePicker({
               key={hour}
               text={String(hour).padStart(2, "0")}
               selected={current?.hour === hour}
-              tabbable={hour === hourStop}
+              tabbable={hour === (focusedHour ?? hourStop)}
+              onFocus={() => setFocusedHour(hour)}
               onMoveAcross={moveAcross}
               disabled={firstMinuteIn(hour) === undefined}
               onSelect={() => pickHour(hour)}
@@ -195,7 +207,8 @@ export function TimePicker({
               key={minute}
               text={String(minute).padStart(2, "0")}
               selected={current?.minute === minute}
-              tabbable={minute === minuteStop}
+              tabbable={minute === (focusedMinute ?? minuteStop)}
+              onFocus={() => setFocusedMinute(minute)}
               onMoveAcross={moveAcross}
               disabled={
                 current
@@ -240,6 +253,7 @@ function TimeOption({
   selected,
   disabled,
   tabbable,
+  onFocus,
   onSelect,
   onMoveAcross,
 }: {
@@ -247,13 +261,23 @@ function TimeOption({
   selected: boolean
   disabled: boolean
   tabbable: boolean
+  onFocus: () => void
   onSelect: () => void
   onMoveAcross: (from: HTMLElement, direction: 1 | -1) => void
 }) {
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const el = event.currentTarget
-    if (event.key === "Enter") {
+    if (event.key === "Enter" || event.key === " ") {
       if (!disabled) onSelect()
+    } else if (event.key === "Home" || event.key === "End") {
+      const enabled = Array.from(el.parentElement?.children ?? []).filter(
+        (child): child is HTMLElement =>
+          child instanceof HTMLElement &&
+          child.getAttribute("aria-disabled") !== "true"
+      )
+      ;(event.key === "Home" ? enabled[0] : enabled.at(-1))?.focus()
+    } else if (event.key === "PageUp" || event.key === "PageDown") {
+      // Handled only to keep the browser from scrolling the list away.
     } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       const step =
         event.key === "ArrowDown"
@@ -275,10 +299,13 @@ function TimeOption({
       aria-disabled={disabled}
       tabIndex={tabbable ? 0 : -1}
       onKeyDown={onKeyDown}
+      onFocus={onFocus}
       onClick={disabled ? undefined : onSelect}
       className={cn(
-        "cursor-pointer rounded-md px-2 py-1 text-center text-sm tabular-nums hover:bg-muted",
-        selected && "bg-primary text-primary-foreground hover:bg-primary",
+        "cursor-pointer rounded-md px-2 py-1 text-center text-sm tabular-nums outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+        selected
+          ? "bg-primary text-primary-foreground hover:bg-primary"
+          : "focus-visible:bg-muted",
         disabled && "cursor-not-allowed opacity-50 hover:bg-transparent"
       )}
     >

@@ -330,6 +330,92 @@ describe("TimePicker", () => {
       expect(screen.getByRole("button")).toHaveTextContent("09:30")
     })
 
+    it("scrolls the tab stop into view when nothing is selected", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker min="08:00" />)
+      await user.click(screen.getByRole("button"))
+      const scroll = vi.mocked(Element.prototype.scrollIntoView)
+      const hourCalls = scroll.mock.contexts.filter((el) =>
+        hours().contains(el as Element)
+      )
+      expect(hourCalls.map((el) => (el as Element).textContent)).toEqual(["08"])
+    })
+
+    it("selects with Space", async () => {
+      const user = userEvent.setup()
+      const onValueChange = vi.fn()
+      render(<TimePicker onValueChange={onValueChange} />)
+      await user.click(screen.getByRole("button"))
+      await user.keyboard("{ArrowDown} ")
+      expect(onValueChange).toHaveBeenLastCalledWith("01:00")
+      await user.keyboard("{ArrowRight}{ArrowDown} ")
+      expect(onValueChange).toHaveBeenLastCalledWith("01:01")
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull())
+    })
+
+    it("jumps to the first and last enabled option with Home and End", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker min="08:00" max="17:00" defaultValue="12:00" />)
+      await user.click(screen.getByRole("button"))
+      await user.keyboard("{End}")
+      expect(document.activeElement).toBe(option(hours(), "17"))
+      await user.keyboard("{Home}")
+      expect(document.activeElement).toBe(option(hours(), "08"))
+    })
+
+    it("stops PageUp and PageDown from scrolling the list", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker defaultValue="12:00" />)
+      await user.click(screen.getByRole("button"))
+      const active = document.activeElement as HTMLElement
+      for (const key of ["PageUp", "PageDown"]) {
+        const event = new KeyboardEvent("keydown", {
+          key,
+          bubbles: true,
+          cancelable: true,
+        })
+        active.dispatchEvent(event)
+        expect(event.defaultPrevented).toBe(true)
+      }
+    })
+
+    it("moves the tab stop with arrow focus", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker defaultValue="09:30" />)
+      await user.click(screen.getByRole("button"))
+      await user.keyboard("{ArrowDown}")
+      expect(option(hours(), "10")).toHaveAttribute("tabindex", "0")
+      expect(option(hours(), "09")).toHaveAttribute("tabindex", "-1")
+      const stops = within(hours())
+        .getAllByRole("option")
+        .filter((o) => o.tabIndex === 0)
+      expect(stops).toHaveLength(1)
+    })
+
+    it("resets the tab stop when reopened", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker defaultValue="09:30" />)
+      await user.click(screen.getByRole("button"))
+      await user.keyboard("{ArrowDown}{Escape}")
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull())
+      await user.click(screen.getByRole("button"))
+      expect(option(hours(), "09")).toHaveAttribute("tabindex", "0")
+    })
+
+    it("shows a visible focus ring, with a fill only when not selected", async () => {
+      const user = userEvent.setup()
+      render(<TimePicker defaultValue="09:30" />)
+      await user.click(screen.getByRole("button"))
+      expect(option(hours(), "09")).toHaveClass(
+        "outline-none",
+        "focus-visible:ring-2",
+        "focus-visible:ring-ring",
+        "focus-visible:ring-inset"
+      )
+      expect(option(hours(), "09")).not.toHaveClass("focus-visible:bg-muted")
+      expect(option(hours(), "10")).toHaveClass("focus-visible:bg-muted")
+    })
+
     it("scrolls selected options to the center on open", async () => {
       const user = userEvent.setup()
       render(<TimePicker defaultValue="09:30" />)
