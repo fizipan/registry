@@ -4,6 +4,45 @@ A small shadcn registry of components I reuse. Items install with the shadcn CLI
 
 Items are written for Radix-based shadcn projects (the `radix-nova` style, `lucide-react` icons).
 
+Demo: https://fizipan-registry.vercel.app
+
+## Install
+
+Any item installs straight from GitHub, with no setup:
+
+```bash
+npx shadcn@latest add fizipan/registry/time-picker
+```
+
+### The `@fizipan` namespace
+
+Add the registry to `components.json` once:
+
+```json
+{
+  "registries": {
+    "@fizipan": "https://fizipan-registry.vercel.app/r/{name}.json"
+  }
+}
+```
+
+Then install by name, or browse what's there:
+
+```bash
+npx shadcn@latest add @fizipan/time-picker
+npx shadcn@latest search @fizipan
+```
+
+### Use it from Claude Code (MCP)
+
+The shadcn MCP server lets an AI assistant search and install items from the registries in your `components.json`. Set it up in your project with:
+
+```bash
+npx shadcn@latest mcp init --client claude
+```
+
+Restart Claude Code, then ask for something like "add the time picker from @fizipan".
+
 ## Items
 
 ### time-picker

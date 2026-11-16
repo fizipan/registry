@@ -36,6 +36,21 @@ export function App() {
             A 24-hour time picker built on the shadcn Popover and Button. Values
             use the HH:mm format.
           </p>
+          <p className="text-sm text-muted-foreground">
+            Install with{" "}
+            <code className="rounded-sm bg-muted px-1 py-0.5 font-mono text-foreground">
+              npx shadcn@latest add fizipan/registry/time-picker
+            </code>
+            . Setup for the <code className="font-mono">@fizipan</code>{" "}
+            namespace is in the{" "}
+            <a
+              href="https://github.com/fizipan/registry#readme"
+              className="text-foreground underline underline-offset-4"
+            >
+              README
+            </a>
+            .
+          </p>
         </div>
         <Button variant="outline" size="icon" onClick={toggleDark}>
           {dark ? <SunIcon /> : <MoonIcon />}
