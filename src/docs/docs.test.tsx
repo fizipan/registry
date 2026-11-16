@@ -130,6 +130,22 @@ describe("admin shell preview", () => {
   })
 })
 
+describe("admin shell datasheet", () => {
+  it("documents the router wrapper pitfalls", () => {
+    renderApp()
+    goTo("#/admin-shell")
+    const text = document.body.textContent ?? ""
+    expect(text).toContain("activeOptions={{ exact: true }}")
+    expect(text).toContain("not NavLink")
+    expect(text).toContain("module scope")
+    expect(text).toContain("<main>")
+    expect(text).toContain("typedRoutes")
+    expect(text).toContain("forwardRef")
+    expect(text).toContain("client component")
+    expect(text).toContain("an icon")
+  })
+})
+
 describe("ordering block", () => {
   it("switches the install route and copies the command", async () => {
     const user = userEvent.setup()

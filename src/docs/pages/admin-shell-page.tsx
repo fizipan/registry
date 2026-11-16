@@ -27,7 +27,8 @@ const shellProps: PropRow[] = [
       <>
         Renders every navigation link. Spread every prop onto the anchor: the
         sidebar passes className, data attributes, ARIA and handlers through it.
-        Next.js <code className="font-mono">Link</code> fits as is.
+        Next.js <code className="font-mono">Link</code> fits as is. Define it at
+        module scope, not inline in render, or every render remounts the links.
       </>
     ),
   },
@@ -75,7 +76,13 @@ const shellProps: PropRow[] = [
   {
     name: "children",
     type: "ReactNode",
-    note: "The page content, inside the inset panel.",
+    note: (
+      <>
+        The page content. It renders inside the shell&apos;s{" "}
+        <code className="font-mono">&lt;main&gt;</code>, so pages must not add
+        another <code className="font-mono">main</code>.
+      </>
+    ),
   },
 ]
 
@@ -86,7 +93,7 @@ const linkFields: PropRow[] = [
     name: "icon",
     type: "ComponentType<{ className?: string }>",
     fallback: "-",
-    note: "Any Lucide icon fits.",
+    note: "Any Lucide icon fits. Top-level items need an icon to read well in icon mode.",
   },
   {
     name: "badge",
@@ -188,7 +195,7 @@ import { nav } from "@/lib/nav"
 
 // to is typed per route; cast if your route tree is registered.
 const Link: LinkComponent = ({ href, ...props }) => (
-  <RouterLink to={href as never} {...props} />
+  <RouterLink to={href as never} activeOptions={{ exact: true }} {...props} />
 )
 
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -317,6 +324,16 @@ export function AdminShellPage({ item }: { item: RegistryItem }) {
         description="Wrap your routes once. Each router needs a two-line link wrapper that maps href to its own prop and spreads the rest."
       >
         <div className="flex flex-col gap-6">
+          <p className="text-sm text-muted-foreground">
+            In Next.js, build <code className="font-mono">nav</code> in a client
+            component when it holds icon components: icons cannot cross the
+            server boundary. With <code className="font-mono">typedRoutes</code>{" "}
+            on, pass a small wrapper that casts href instead of passing{" "}
+            <code className="font-mono">Link</code> directly. On React 18 a
+            wrapper around a router link needs{" "}
+            <code className="font-mono">forwardRef</code>, because the sidebar
+            hands the link a ref.
+          </p>
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-medium">Menu data</h3>
             <CodeSample code={navSample} />
@@ -327,10 +344,21 @@ export function AdminShellPage({ item }: { item: RegistryItem }) {
           </div>
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-medium">TanStack Router</h3>
+            <p className="text-sm text-muted-foreground">
+              TanStack&apos;s <code className="font-mono">Link</code> sets
+              aria-current and its active class from its own prefix match,
+              overriding spread props.{" "}
+              <code className="font-mono">activeOptions</code> keeps that match
+              exact, so only the sidebar&apos;s active link is marked.
+            </p>
             <CodeSample code={tanstack} />
           </div>
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-medium">React Router</h3>
+            <p className="text-sm text-muted-foreground">
+              Use <code className="font-mono">Link</code>, not NavLink, because
+              NavLink sets its own aria-current.
+            </p>
             <CodeSample code={reactRouter} />
           </div>
         </div>
