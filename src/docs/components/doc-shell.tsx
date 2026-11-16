@@ -12,7 +12,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { useTheme } from "@/components/theme-provider"
-import { REPO_URL, groups, itemsOfType, typeLabel } from "@/docs/registry-data"
+import {
+  REPO_URL,
+  getItem,
+  groups,
+  itemsOfType,
+  typeLabel,
+} from "@/docs/registry-data"
 import { href } from "@/docs/use-route"
 
 function Wordmark({ className }: { className?: string }) {
@@ -110,7 +116,7 @@ function NavList({
         href={href("")}
         onClick={onNavigate}
         aria-current={route === "" ? "page" : undefined}
-        className="group flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm text-sidebar-muted transition-colors outline-none hover:bg-sidebar-accent/60 hover:text-sidebar-foreground focus-visible:ring-3 focus-visible:ring-sidebar-ring/50 active:bg-sidebar-accent/80 aria-[current=page]:bg-sidebar-accent aria-[current=page]:text-sidebar-accent-foreground pointer-coarse:py-3"
+        className="group flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm text-sidebar-muted transition-colors outline-none hover:bg-sidebar-accent/60 hover:text-sidebar-foreground focus-visible:ring-3 focus-visible:ring-sidebar-ring active:bg-sidebar-accent/80 aria-[current=page]:bg-sidebar-accent aria-[current=page]:text-sidebar-accent-foreground pointer-coarse:py-3"
       >
         All parts
         <span
@@ -131,7 +137,7 @@ function NavList({
                   onClick={onNavigate}
                   aria-current={route === link.route ? "page" : undefined}
                   className={cn(
-                    "group flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sidebar-foreground/80 transition-colors outline-none hover:bg-sidebar-accent/60 hover:text-sidebar-foreground focus-visible:ring-3 focus-visible:ring-sidebar-ring/50 active:bg-sidebar-accent/80 aria-[current=page]:bg-sidebar-accent aria-[current=page]:text-sidebar-accent-foreground pointer-coarse:py-3",
+                    "group flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sidebar-foreground/80 transition-colors outline-none hover:bg-sidebar-accent/60 hover:text-sidebar-foreground focus-visible:ring-3 focus-visible:ring-sidebar-ring active:bg-sidebar-accent/80 aria-[current=page]:bg-sidebar-accent aria-[current=page]:text-sidebar-accent-foreground pointer-coarse:py-3",
                     link.mono ? "font-mono text-[0.8125rem]" : "text-sm"
                   )}
                 >
@@ -150,6 +156,14 @@ function NavList({
   )
 }
 
+/** The document title for a route, so each page is announced by name. */
+function pageTitle(route: string) {
+  if (route === "") return "fizipan/registry · shadcn/ui parts"
+  if (route === "setup") return "Install routes · fizipan/registry"
+  const item = getItem(route)
+  return `${item ? item.name : "Part not found"} · fizipan/registry`
+}
+
 export function DocShell({
   route,
   children,
@@ -165,6 +179,7 @@ export function DocShell({
   // A route change is a page change: move focus into the content so keyboard
   // and screen-reader users start at the top of the new page.
   React.useEffect(() => {
+    document.title = pageTitle(route)
     if (mounted.current) mainRef.current?.focus({ preventScroll: true })
     mounted.current = true
   }, [route])
@@ -178,7 +193,7 @@ export function DocShell({
           event.preventDefault()
           mainRef.current?.focus()
         }}
-        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-3 focus-visible:left-3 focus-visible:z-50 focus-visible:rounded-md focus-visible:bg-sidebar focus-visible:px-3 focus-visible:py-2 focus-visible:text-sm focus-visible:text-sidebar-accent-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-3 focus-visible:left-3 focus-visible:z-50 focus-visible:rounded-md focus-visible:bg-sidebar focus-visible:px-3 focus-visible:py-2 focus-visible:text-sm focus-visible:text-sidebar-accent-foreground focus-visible:ring-3 focus-visible:ring-ring"
       >
         Skip to content
       </a>
@@ -212,7 +227,11 @@ export function DocShell({
                 side="right"
                 // After a nav tap, leave focus on the new page, not the hamburger.
                 onCloseAutoFocus={(event) => {
-                  if (navigated.current) event.preventDefault()
+                  if (navigated.current) {
+                    event.preventDefault()
+                    // Tapping the current page changes no route, so focus main here too.
+                    mainRef.current?.focus({ preventScroll: true })
+                  }
                   navigated.current = false
                 }}
                 className="w-72 overflow-y-auto border-none bg-sidebar pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] text-sidebar-foreground"

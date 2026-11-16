@@ -146,6 +146,19 @@ describe("admin shell datasheet", () => {
   })
 })
 
+describe("page titles", () => {
+  it("names each page in the document title", () => {
+    renderApp()
+    expect(document.title).toBe("fizipan/registry · shadcn/ui parts")
+    goTo("#/time-picker")
+    expect(document.title).toBe("time-picker · fizipan/registry")
+    goTo("#/setup")
+    expect(document.title).toBe("Install routes · fizipan/registry")
+    goTo("#/nope")
+    expect(document.title).toBe("Part not found · fizipan/registry")
+  })
+})
+
 describe("ordering block", () => {
   it("switches the install route and copies the command", async () => {
     const user = userEvent.setup()

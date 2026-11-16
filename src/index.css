@@ -338,3 +338,10 @@
     height: 2.75rem;
   }
 }
+
+/* Docs site: keep keyboard focus clear of the sticky mobile header. */
+@media (max-width: 767px) {
+  html {
+    scroll-padding-top: calc(4rem + env(safe-area-inset-top));
+  }
+}

@@ -26,7 +26,7 @@ export function CatalogPage() {
   return (
     <>
       <header className="flex flex-col gap-3 border-b-2 border-foreground pb-4">
-        <h1 className="font-display text-5xl leading-[0.9] font-bold tracking-wide uppercase sm:text-7xl">
+        <h1 className="font-display text-4xl leading-[0.9] font-bold tracking-wide uppercase min-[400px]:text-5xl sm:text-7xl md:text-6xl lg:text-7xl">
           fizipan<span className="text-primary">/</span>registry
         </h1>
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
