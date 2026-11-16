@@ -90,6 +90,7 @@
 }
 
 :root {
+  color-scheme: light;
   --background: oklch(0.968 0.003 60);
   --foreground: oklch(0.19 0.01 33);
   --card: oklch(1 0 0);
@@ -162,6 +163,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0.006 33);
   --foreground: oklch(0.97 0.004 33);
   --card: oklch(0.185 0.008 33);
@@ -231,6 +233,15 @@
   html {
     scrollbar-color: var(--color-ink-300) transparent;
     caret-color: var(--primary);
+    background-color: var(--background);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+  pre {
+    overscroll-behavior: contain;
   }
   .dark {
     scrollbar-color: var(--color-ink-700) transparent;
@@ -254,4 +265,76 @@
 @theme inline {
   --color-code-slab: var(--code-slab);
   --color-code-slab-ring: var(--code-slab-ring);
+}
+
+/* Docs site: motion tokens. Emitted on :root so the unlayered rules below can use them. */
+@theme {
+  --ease-snap: cubic-bezier(0.23, 1, 0.32, 1); /* UI enter/exit, press, swaps */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); /* sheet entrance */
+}
+
+/* Docs site: copy feedback. Two stacked states in one grid cell; data-copied swaps them. */
+.copy-swap > * {
+  transition:
+    opacity 160ms var(--ease-snap),
+    scale 160ms var(--ease-snap),
+    filter 160ms var(--ease-snap);
+}
+.copy-swap > :last-child,
+.copy-swap[data-copied] > :first-child {
+  opacity: 0;
+}
+.copy-swap > svg:last-child,
+.copy-swap[data-copied] > svg:first-child {
+  scale: 0.75;
+  filter: blur(2px);
+}
+.copy-swap[data-copied] > :last-child {
+  opacity: 1;
+}
+.copy-swap[data-copied] > svg:last-child {
+  scale: 1;
+  filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .copy-swap > * {
+    scale: 1 !important;
+    filter: none !important;
+  }
+}
+
+/* Docs site: the mobile nav sheet slides in from its trigger's edge (right), and clears the notch. */
+[data-docs-nav] {
+  overscroll-behavior: contain;
+}
+[data-docs-nav][data-state="open"] {
+  --tw-enter-translate-x: 100%;
+  --tw-enter-opacity: 1;
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-drawer);
+}
+[data-docs-nav][data-state="closed"] {
+  --tw-exit-translate-x: 100%;
+  --tw-exit-opacity: 1;
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-snap);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-docs-nav][data-state] {
+    --tw-enter-translate-x: 0;
+    --tw-exit-translate-x: 0;
+    --tw-enter-opacity: 0;
+    --tw-exit-opacity: 0;
+    animation-duration: 150ms;
+  }
+}
+[data-docs-nav] [data-slot="sheet-close"] {
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: max(0.75rem, env(safe-area-inset-right));
+}
+@media (pointer: coarse) {
+  [data-docs-nav] [data-slot="sheet-close"] {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
 }
