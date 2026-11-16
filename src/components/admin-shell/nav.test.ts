@@ -49,6 +49,26 @@ describe("nav", () => {
     expect(activeHref(nav, "/settings")).toBeNull()
   })
 
+  it("prefers the longest match and the first on a tie", () => {
+    const fx: NavSection[] = [
+      { items: [{ title: "A", href: "/a" }] },
+      {
+        items: [
+          { title: "AB", href: "/a/b" },
+          {
+            title: "P1",
+            items: [{ title: "Dup 1", href: "/dup" }],
+          },
+        ],
+      },
+      { items: [{ title: "P2", items: [{ title: "Dup 2", href: "/dup" }] }] },
+    ]
+    expect(activeHref(fx, "/a/b/c")).toBe("/a/b")
+    expect(activeHref(fx, "/a/x")).toBe("/a")
+    expect(activeHref(fx, "/dup")).toBe("/dup")
+    expect(parentOf(fx, "/dup")?.title).toBe("P1")
+  })
+
   it("finds a link's parent", () => {
     expect(parentOf(nav, "/leave/calendar")?.title).toBe("Leave")
     expect(parentOf(nav, "/employees")).toBeNull()
