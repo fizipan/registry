@@ -84,6 +84,15 @@ const PreviewLink: LinkComponent = ({ href, onClick, ...props }) => {
 export function AdminShellPreview() {
   const [path, setPath] = React.useState("/")
 
+  // Inside the docs iframe, keep a swipe from chaining into the parent page.
+  React.useEffect(() => {
+    const root = document.documentElement
+    root.style.overscrollBehavior = "contain"
+    return () => {
+      root.style.overscrollBehavior = ""
+    }
+  }, [])
+
   const crumbs = crumbsFor(path)
   const title = crumbs[crumbs.length - 1].title
 

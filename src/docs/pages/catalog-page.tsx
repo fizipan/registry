@@ -97,11 +97,11 @@ export function CatalogPage() {
             </TableHeader>
             <TableBody>
               {items.map((item) => (
-                <TableRow key={item.name}>
+                <TableRow key={item.name} className="relative">
                   <TableCell className="align-top">
                     <a
                       href={href(item.name)}
-                      className="font-mono text-[0.8125rem] font-medium underline-offset-4 hover:text-primary hover:underline"
+                      className="font-mono text-[0.8125rem] font-medium underline-offset-4 after:absolute after:inset-0 hover:text-primary hover:underline active:text-primary"
                     >
                       {item.name}
                     </a>
@@ -114,7 +114,7 @@ export function CatalogPage() {
                   <TableCell className="align-top text-sm whitespace-normal text-muted-foreground">
                     {item.description}
                   </TableCell>
-                  <TableCell className="text-right align-top">
+                  <TableCell className="relative z-10 text-right align-top">
                     <CopyButton
                       value={installCommands(item.name).github}
                       label={copyLabel(item.name)}
@@ -131,12 +131,15 @@ export function CatalogPage() {
           className="flex flex-col divide-y divide-border border-y border-border sm:hidden"
         >
           {items.map((item) => (
-            <li key={item.name} className="flex items-start gap-3 py-3">
+            <li
+              key={item.name}
+              className="relative flex items-start gap-3 py-3"
+            >
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <a
                     href={href(item.name)}
-                    className="font-mono text-[0.8125rem] font-medium underline-offset-4 hover:text-primary hover:underline"
+                    className="font-mono text-[0.8125rem] font-medium underline-offset-4 after:absolute after:inset-0 hover:text-primary hover:underline active:text-primary"
                   >
                     {item.name}
                   </a>
@@ -151,6 +154,7 @@ export function CatalogPage() {
               <CopyButton
                 value={installCommands(item.name).github}
                 label={copyLabel(item.name)}
+                className="relative z-10"
               />
             </li>
           ))}

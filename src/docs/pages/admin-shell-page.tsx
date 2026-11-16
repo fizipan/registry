@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 import {
   CodeSample,
@@ -263,8 +264,19 @@ export function AdminShellPage({ item }: { item: RegistryItem }) {
         <iframe
           src="#/preview/admin-shell"
           title="Admin shell preview"
-          className="h-[600px] w-full rounded-lg border bg-background"
+          loading="lazy"
+          className="h-[min(600px,75svh)] w-full rounded-lg border bg-background"
         />
+        {/* On touch, the frame can trap a swipe; offer the preview as its own page. */}
+        <Button
+          variant="outline"
+          asChild
+          className="hidden pointer-coarse:inline-flex pointer-coarse:h-11 pointer-coarse:self-start"
+        >
+          <a href="#/preview/admin-shell" target="_blank" rel="noreferrer">
+            Open full preview
+          </a>
+        </Button>
       </SheetSection>
 
       <SheetSection

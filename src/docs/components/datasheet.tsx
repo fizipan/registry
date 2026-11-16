@@ -108,7 +108,7 @@ export function CodeSample({
 }) {
   return (
     <div className="relative rounded-lg border border-border bg-muted/60">
-      <pre className="overflow-x-auto p-4 pr-12 font-mono text-[0.8125rem] leading-6">
+      <pre className="overflow-x-auto overscroll-x-contain p-4 pr-12 font-mono text-[0.8125rem] leading-6 pointer-coarse:pr-14">
         <code>{code}</code>
       </pre>
       <div className="absolute top-2 right-2">

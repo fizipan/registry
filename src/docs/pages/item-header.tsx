@@ -109,7 +109,7 @@ export function ItemHeader({ item }: { item: RegistryItem }) {
               href={sourceUrl(file?.path ?? "registry.json")}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 transition-colors duration-150 hover:text-foreground hover:underline active:text-foreground"
             >
               Source
               <ExternalLinkIcon className="size-3.5" />
