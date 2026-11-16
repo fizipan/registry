@@ -50,27 +50,27 @@
         {
           "path": "src/components/admin-shell/admin-shell.tsx",
           "type": "registry:component",
-          "target": "components/admin-shell/admin-shell.tsx"
+          "target": "@components/admin-shell/admin-shell.tsx"
         },
         {
           "path": "src/components/admin-shell/app-sidebar.tsx",
           "type": "registry:component",
-          "target": "components/admin-shell/app-sidebar.tsx"
+          "target": "@components/admin-shell/app-sidebar.tsx"
         },
         {
           "path": "src/components/admin-shell/app-header.tsx",
           "type": "registry:component",
-          "target": "components/admin-shell/app-header.tsx"
+          "target": "@components/admin-shell/app-header.tsx"
         },
         {
           "path": "src/components/admin-shell/nav-user.tsx",
           "type": "registry:component",
-          "target": "components/admin-shell/nav-user.tsx"
+          "target": "@components/admin-shell/nav-user.tsx"
         },
         {
           "path": "src/components/admin-shell/nav.ts",
           "type": "registry:component",
-          "target": "components/admin-shell/nav.ts"
+          "target": "@components/admin-shell/nav.ts"
         }
       ]
     },
