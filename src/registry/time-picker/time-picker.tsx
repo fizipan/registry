@@ -34,13 +34,19 @@ export function getMinuteOptions(step: number): number[] {
 
 const toMinutes = (time: Time) => time.hour * 60 + time.minute
 
-export function isTimeInRange(time: Time, min?: string, max?: string): boolean {
-  const lower = min ? parseTime(min) : null
-  const upper = max ? parseTime(max) : null
+function withinBounds(time: Time, lower: Time | null, upper: Time | null) {
   const minutes = toMinutes(time)
   if (lower && minutes < toMinutes(lower)) return false
   if (upper && minutes > toMinutes(upper)) return false
   return true
+}
+
+export function isTimeInRange(time: Time, min?: string, max?: string): boolean {
+  return withinBounds(
+    time,
+    min ? parseTime(min) : null,
+    max ? parseTime(max) : null
+  )
 }
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
@@ -84,8 +90,10 @@ export function TimePicker({
   const current = parseTime(currentValue)
   const minuteOptions = getMinuteOptions(minuteStep)
 
+  const lower = min ? parseTime(min) : null
+  const upper = max ? parseTime(max) : null
   const inRange = (hour: number, minute: number) =>
-    isTimeInRange({ hour, minute }, min, max)
+    withinBounds({ hour, minute }, lower, upper)
   const firstMinuteIn = (hour: number) =>
     minuteOptions.find((minute) => inRange(hour, minute))
   const firstHourFor = (minute: number) =>
@@ -98,10 +106,10 @@ export function TimePicker({
   }
 
   const contentRef = React.useRef<HTMLDivElement>(null)
-  const hourStop =
-    current && HOURS.includes(current.hour)
-      ? current.hour
-      : HOURS.find((hour) => firstMinuteIn(hour) !== undefined)
+  const hourDisabled = HOURS.map((hour) => firstMinuteIn(hour) === undefined)
+  const hourStop = current
+    ? current.hour
+    : HOURS.find((hour) => !hourDisabled[hour])
   const minuteStop = minuteOptions.includes(current?.minute ?? -1)
     ? current?.minute
     : minuteOptions.find((minute) =>
@@ -196,7 +204,7 @@ export function TimePicker({
               tabbable={hour === (focusedHour ?? hourStop)}
               onFocus={() => setFocusedHour(hour)}
               onMoveAcross={moveAcross}
-              disabled={firstMinuteIn(hour) === undefined}
+              disabled={hourDisabled[hour]}
               onSelect={() => pickHour(hour)}
             />
           ))}

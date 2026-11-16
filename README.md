@@ -30,7 +30,9 @@ The value is a 24-hour `"HH:mm"` string, and `""` means empty.
 | `hourLabel`     | `string`                  | `"Hour"`        | Accessible name of the hour column.   |
 | `minuteLabel`   | `string`                  | `"Minute"`      | Accessible name of the minute column. |
 
-Other props go to the trigger button, so `id`, `disabled` and `aria-invalid` all work.
+`name` submits the value with a form, through a hidden input. Other props go to the trigger button, so `id`, `disabled` and `aria-invalid` all work.
+
+The example below uses `Field`, which you can install with `npx shadcn@latest add field`.
 
 ```tsx
 import { useState } from "react"
